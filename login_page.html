@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aCed | Faculty Portal Login</title>
+  
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Official Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: 
+        linear-gradient(135deg, rgba(249, 251, 255, 0.92), rgba(240, 244, 252, 0.90)),
+        url('https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+      overflow: hidden;
+      color: #1e293b;
+    }
+
+    /* =====================================================
+       2-SECOND INTRO ANIMATION (NO LINE, NO SKIP BUTTON)
+       ===================================================== */
+    .intro-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #ffffff 0%, #f4f7fb 100%);
+      animation: introBgFlash 2s ease-out forwards;
+      transition: opacity 0.45s ease, visibility 0.45s ease;
+    }
+
+    .intro-splash.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    @keyframes introBgFlash {
+      0% { background: radial-gradient(circle at center, #111936 0%, #070b19 100%); }
+      35%, 100% { background: radial-gradient(circle at center, #ffffff 0%, #f4f7fb 100%); }
+    }
+
+    .intro-logo-wrap {
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: introPop 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes introPop {
+      0% { transform: scale(0.82); opacity: 0; }
+      25% { opacity: 1; }
+      65%, 100% { transform: scale(1); opacity: 1; }
+    }
+
+    .intro-neon-trace {
+      fill: none;
+      stroke: #38bdf8;
+      stroke-width: 5;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 10px #38bdf8) drop-shadow(0 0 20px #4f46e5);
+      stroke-dasharray: 950;
+      stroke-dashoffset: 950;
+      animation: fastNeon 0.9s ease-out forwards;
+    }
+
+    @keyframes fastNeon {
+      0% { stroke-dashoffset: 950; opacity: 1; }
+      65% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0; }
+    }
+
+    .intro-solid-parts {
+      opacity: 0;
+      animation: solidFadeIn 2s ease-out forwards;
+    }
+
+    @keyframes solidFadeIn {
+      0%, 20% { opacity: 0; transform: scale(0.96); transform-origin: center; }
+      45%, 100% { opacity: 1; transform: scale(1); transform-origin: center; }
+    }
+
+    .intro-tagline-wipe {
+      clip-path: inset(0 100% 0 0);
+      animation: fastWipe 2s ease-out forwards;
+    }
+
+    @keyframes fastWipe {
+      0%, 40% { clip-path: inset(0 100% 0 0); opacity: 0; }
+      45% { opacity: 1; }
+      85%, 100% { clip-path: inset(0 0% 0 0); opacity: 1; }
+    }
+
+    /* Background Ambient Glow */
+    .circle1, .circle2 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0.25;
+    }
+    .circle1 { width: 300px; height: 300px; background: rgba(59, 130, 246, 0.12); top: -120px; left: -100px; }
+    .circle2 { width: 350px; height: 350px; background: rgba(139, 92, 246, 0.12); bottom: -150px; right: -120px; }
+
+    /* =========================================
+       CENTERED LOGIN CARD STYLES
+       ========================================= */
+    .login-container {
+      position: relative;
+      width: 440px;
+      padding: 36px 40px 38px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+      z-index: 10;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .login-container.show-login {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-logo-svg {
+      width: 175px;
+      height: auto;
+      margin-bottom: 6px;
+    }
+
+    .portal {
+      color: #120e7e;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 12.5px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #f1f5f9;
+      padding: 5px;
+      border-radius: 12px;
+      margin-bottom: 22px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: #475569;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Form Inputs */
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; margin-bottom: 6px; color: #0f172a; font-size: 13px; font-weight: 600; }
+    .input-box { position: relative; }
+    
+    .input-box input {
+      width: 100%;
+      padding: 13px 45px 13px 15px;
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      outline: none;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-size: 14px;
+      transition: 0.25s;
+    }
+
+    .input-box input:focus {
+      border-color: #120e7e;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(18, 14, 126, 0.08);
+    }
+
+    .input-box input::placeholder { color: #94a3b8; }
+    
+    .eye {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #64748b;
+      user-select: none;
+    }
+
+    .field-error { display: none; margin-top: 6px; color: #ef4444; font-size: 12px; font-weight: 500; }
+    .input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important; }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 4px 0 18px;
+      font-size: 12px;
+    }
+
+    .remember { display: flex; align-items: center; gap: 6px; color: #475569; cursor: pointer; }
+    .remember input { accent-color: #120e7e; }
+    .forgot { color: #120e7e; text-decoration: none; font-weight: 700; cursor: pointer; }
+    .forgot:hover { text-decoration: underline; }
+
+    /* Submit Button */
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #120e7e;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.22s;
+    }
+
+    .login-btn:hover { background: #0d0963; transform: translateY(-2px); }
+
+    /* Dividers & Social */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 16px;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #e2e8f0; }
+
+    .social-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .social-btn {
+      padding: 11px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+
+    .social-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .google-icon { color: #4285F4; font-size: 16px; }
+    .apple-icon { color: #000000; font-size: 18px; }
+
+    .message {
+      text-align: center;
+      min-height: 20px;
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Forgot Password & Apple Account Chooser Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-box {
+      width: 390px;
+      max-width: 92%;
+      padding: 28px;
+      border-radius: 20px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+    }
+    .modal-box h2 { margin-bottom: 8px; color: #0f172a; font-size: 1.25rem; }
+    .modal-box p { color: #64748b; font-size: 13px; margin-bottom: 18px; }
+    .close { float: right; border: none; background: transparent; color: #64748b; font-size: 22px; cursor: pointer; }
+    .modal-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; background: #120e7e; color: white; cursor: pointer; font-weight: 600; }
+
+    /* Apple Account Chooser List */
+    .acc-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .acc-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .acc-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #120e7e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .acc-info strong { display: block; font-size: 13.5px; color: #0f172a; }
+    .acc-info span { font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+
+  <!-- SHARED SVG DEFINITIONS FOR ACCURATE aCed LOGO -->
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <linearGradient id="acedLeftLeg" x1="50%" y1="0%" x2="10%" y2="100%">
+        <stop offset="0%" stop-color="#19c2ff" />
+        <stop offset="45%" stop-color="#0f58f2" />
+        <stop offset="100%" stop-color="#092d82" />
+      </linearGradient>
+
+      <linearGradient id="acedRightLeg" x1="15%" y1="0%" x2="85%" y2="100%">
+        <stop offset="0%" stop-color="#081e59" />
+        <stop offset="35%" stop-color="#1b2ca8" />
+        <stop offset="78%" stop-color="#3333d1" />
+        <stop offset="100%" stop-color="#6946ef" />
+      </linearGradient>
+
+      <linearGradient id="acedSwoosh" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#0d43d6" />
+        <stop offset="45%" stop-color="#1890ff" />
+        <stop offset="85%" stop-color="#29c8ff" />
+        <stop offset="100%" stop-color="#0095ff" />
+      </linearGradient>
+
+      <linearGradient id="acedCapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#183da1" />
+        <stop offset="100%" stop-color="#071948" />
+      </linearGradient>
+
+      <linearGradient id="acedLeafGrad" x1="0%" y1="30%" x2="100%" y2="85%">
+        <stop offset="0%" stop-color="#00a6ff" />
+        <stop offset="50%" stop-color="#2b59ff" />
+        <stop offset="100%" stop-color="#7038ec" />
+      </linearGradient>
+
+      <g id="accurateAcedLogo">
+        <path d="M 244 82 L 336 238" stroke="url(#acedRightLeg)" stroke-width="54" stroke-linecap="round" />
+        <path d="M 226 105 L 254 58 L 288 118 L 254 148 Z" fill="#081d56" />
+        <path d="M 142 254
+                 C 141 236, 152 214, 166 190
+                 L 220 68
+                 C 232 42, 266 42, 278 68
+                 L 280 72
+                 C 266 56, 252 64, 244 80
+                 L 186 208
+                 C 170 232, 154 244, 142 254 Z" fill="url(#acedLeftLeg)" />
+        <path d="M 146 258 C 182 212, 245 204, 305 178 C 345 160, 360 138, 365 110"
+              fill="none" stroke="#ffffff" stroke-width="44" stroke-linecap="round" />
+        <path d="M 148 258
+                 C 142 245, 150 226, 174 214
+                 C 218 192, 268 182, 312 162
+                 C 340 148, 351 132, 353 110
+                 L 369 118
+                 L 385 106
+                 C 385 142, 368 175, 326 196
+                 C 278 218, 226 226, 184 260
+                 C 166 274, 153 270, 148 258 Z" fill="url(#acedSwoosh)" />
+        <path d="M 369 65 L 416 86 L 369 109 L 322 86 Z" fill="url(#acedCapGrad)" stroke="#0c266d" stroke-width="2" stroke-linejoin="round" />
+        <path d="M 407 90 L 407 118" stroke="#081b4b" stroke-width="4.5" stroke-linecap="round" />
+        <path d="M 407 112 C 414 124, 415 135, 407 135 C 399 135, 400 124, 407 112 Z" fill="#081b4b" />
+
+        <g fill="#071946">
+          <path fill-rule="evenodd" d="
+            M 164 334
+            L 164 385
+            A 11 11 0 0 1 142 385
+            L 142 378
+            A 38 38 0 1 1 142 322
+            L 142 320
+            A 11 11 0 0 1 164 320 Z
+            M 122 332
+            A 20 20 0 1 0 122 372
+            A 20 20 0 1 0 122 332 Z" />
+          <path d="M 108 364 C 115 350, 128 342, 141 339 L 141 362 C 141 369, 134 373, 124 372 C 115 371, 110 368, 108 364 Z" fill="url(#acedLeafGrad)" />
+          <path d="M 262 324
+                   A 11 11 0 0 1 248 339
+                   A 27 27 0 1 0 248 365
+                   A 11 11 0 0 1 262 380
+                   A 49 49 0 1 1 262 324 Z" />
+          <path fill-rule="evenodd" d="
+            M 348 358
+            L 297 358
+            A 18 18 0 0 0 330 368
+            A 10 10 0 0 1 345 381
+            A 38 38 0 1 1 352 348
+            C 352 354, 350 358, 348 358 Z
+            M 297 343
+            L 331 343
+            A 17 17 0 0 0 297 343 Z" />
+          <path fill-rule="evenodd" d="
+            M 442 296
+            L 442 385
+            A 11 11 0 0 1 420 385
+            L 420 378
+            A 38 38 0 1 1 420 322
+            L 420 296
+            A 11 11 0 0 1 442 296 Z
+            M 400 332
+            A 20 20 0 1 0 400 372
+            A 20 20 0 1 0 400 332 Z" />
+        </g>
+      </g>
+    </defs>
+  </svg>
+
+  <!-- ===============================================
+       2-SECOND INTRO ANIMATION SPLASH
+       =============================================== -->
+  <div class="intro-splash" id="introSplash">
+    <div class="intro-logo-wrap">
+      <svg viewBox="65 35 400 415" width="100%" height="auto">
+        <g class="intro-solid-parts">
+          <use href="#accurateAcedLogo" />
+        </g>
+        <path class="intro-neon-trace" d="M 142 254 L 248 54 L 336 238 M 148 258 C 218 192, 340 165, 369 110 L 322 86 L 369 65 L 416 86 Z" />
+        <g class="intro-tagline-wipe">
+          <text x="265" y="432" text-anchor="middle" fill="#091e54" font-family="Poppins, sans-serif" font-size="22" font-weight="500" letter-spacing="0.5">
+            Connect <tspan fill="#4338ca" dx="8" dy="-1">&#8226;</tspan><tspan dx="8" dy="1">Manage</tspan> <tspan fill="#4338ca" dx="8" dy="-1">&#8226;</tspan><tspan dx="8" dy="1">Teach</tspan>
+          </text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Background Ambient Glow -->
+  <div class="circle1"></div>
+  <div class="circle2"></div>
+
+  <!-- ===============================================
+       CENTERED LOGIN CARD
+       =============================================== -->
+  <div class="login-container" id="loginCard">
+    <div class="logo-container">
+      <svg class="card-logo-svg" viewBox="65 35 400 415">
+        <use href="#accurateAcedLogo" />
+        <text x="265" y="432" text-anchor="middle" fill="#091e54" font-family="Poppins, sans-serif" font-size="22" font-weight="500" letter-spacing="0.5">
+          Connect <tspan fill="#4338ca" dx="8" dy="-1">&#8226;</tspan><tspan dx="8" dy="1">Manage</tspan> <tspan fill="#4338ca" dx="8" dy="-1">&#8226;</tspan><tspan dx="8" dy="1">Teach</tspan>
+        </text>
+      </svg>
+      <div class="portal">Faculty Portal</div>
+      <p class="subtitle">Manage your classes, students, and academic work</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="loginTab" onclick="showLogin()">Login</button>
+      <button class="tab" id="signupTab" onclick="showSignup()">New Faculty</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="facultyId"><span style="color: #ef4444">*</span>Faculty ID / Email</label>
+        <div class="input-box">
+          <input type="text" id="facultyId" placeholder="Enter 'faculty' or your email" />
+        </div>
+        <div class="field-error" id="facultyError">Please fill out this field.</div>
+      </div>
+
+      <div class="input-group">
+        <label for="password"><span style="color: #ef4444">*</span>Password</label>
+        <div class="input-box">
+          <input type="password" id="password" placeholder="Enter '1234'" />
+          <span class="eye" onclick="togglePassword()">👁</span>
+        </div>
+        <div class="field-error" id="passwordError">Please fill out this field.</div>
+      </div>
+
+      <div class="options">
+        <label class="remember">
+          <input type="checkbox" id="rememberMe" /> Remember me
+        </label>
+        <a class="forgot" onclick="openForgot()">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="login-btn">Login to aCed</button>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" style="display: none;">
+      <div class="input-group">
+        <label><span style="color: #ef4444">*</span>Full Name</label>
+        <div class="input-box">
+          <input type="text" id="newName" placeholder="Dr. Jane Doe" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label><span style="color: #ef4444">*</span>Faculty Email</label>
+        <div class="input-box">
+          <input type="email" id="newEmail" placeholder="name@college.edu" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label><span style="color: #ef4444">*</span>Create Password</label>
+        <div class="input-box">
+          <input type="password" id="newPassword" placeholder="Create a strong password" />
+        </div>
+      </div>
+      <button type="submit" class="login-btn">Create Faculty Account</button>
+    </form>
+
+    <!-- SOCIAL LOGIN BUTTONS -->
+    <div class="divider">Or continue with</div>
+    <div class="social-buttons">
+      <button type="button" class="social-btn" onclick="loginWithGoogle()">
+        <i class="fa-brands fa-google google-icon"></i> Sign in with Google
+      </button>
+      <button type="button" class="social-btn" onclick="loginWithApple()">
+        <i class="fa-brands fa-apple apple-icon"></i> Sign in with Apple
+      </button>
+    </div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div class="modal" id="forgotModal">
+    <div class="modal-box">
+      <button class="close" onclick="closeForgot()">×</button>
+      <h2>Reset Password</h2>
+      <p>Enter your registered faculty email and we'll send you instructions to reset your password.</p>
+      <div class="input-group">
+        <label><span style="color: #ef4444">*</span>Faculty Email</label>
+        <div class="input-box">
+          <input type="email" id="resetEmail" placeholder="name@college.edu" />
+        </div>
+      </div>
+      <button class="modal-btn" onclick="resetPassword()">Send Reset Link</button>
+    </div>
+  </div>
+
+  <!-- Apple Account Selector Modal (Kept as is) -->
+  <div class="modal" id="accountModal">
+    <div class="modal-box">
+      <button class="close" onclick="closeAccountModal()">×</button>
+      <div id="providerHeader" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"></div>
+      <p style="margin-bottom:14px;">Choose an account to continue to <strong>aCed Faculty Portal</strong></p>
+      
+      <div class="acc-item" onclick="selectSocialAccount('Dr. Alex Martin', 'alex.martin@iilm.edu')">
+        <div class="acc-avatar">AM</div>
+        <div class="acc-info">
+          <strong>Dr. Alex Martin</strong>
+          <span>alex.martin@iilm.edu</span>
+        </div>
+      </div>
+
+      <div class="acc-item" onclick="selectSocialAccount('Faculty Admin', 'faculty@aced.edu')">
+        <div class="acc-avatar" style="background:#0f58f2;">FA</div>
+        <div class="acc-info">
+          <strong>Faculty Admin</strong>
+          <span>faculty@aced.edu</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 2-SECOND INTRO CONTROLLER (2000ms)
+    // ==========================================
+    const introSplash = document.getElementById("introSplash");
+    const loginCard = document.getElementById("loginCard");
+
+    setTimeout(() => {
+      introSplash.classList.add("hide");
+      loginCard.classList.add("show-login");
+    }, 2000);
+
+    // ==========================================
+    // TABS & FORM LOGIC
+    // ==========================================
+    function showLogin() {
+      document.getElementById("loginForm").style.display = "block";
+      document.getElementById("signupForm").style.display = "none";
+      document.getElementById("loginTab").classList.add("active");
+      document.getElementById("signupTab").classList.remove("active");
+    }
+
+    function showSignup() {
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("signupForm").style.display = "block";
+      document.getElementById("signupTab").classList.add("active");
+      document.getElementById("loginTab").classList.remove("active");
+    }
+
+    function togglePassword() {
+      const password = document.getElementById("password");
+      password.type = password.type === "password" ? "text" : "password";
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const facultyId = document.getElementById("facultyId");
+      const password = document.getElementById("password");
+      const facultyError = document.getElementById("facultyError");
+      const passwordError = document.getElementById("passwordError");
+      const message = document.getElementById("message");
+
+      facultyError.style.display = "none";
+      passwordError.style.display = "none";
+      facultyId.classList.remove("input-error");
+      password.classList.remove("input-error");
+      message.textContent = "";
+
+      let valid = true;
+      if (facultyId.value.trim() === "") { facultyError.style.display = "block"; facultyId.classList.add("input-error"); valid = false; }
+      if (password.value.trim() === "") { passwordError.style.display = "block"; password.classList.add("input-error"); valid = false; }
+      if (!valid) return;
+
+      if (facultyId.value.trim() === "faculty" && password.value.trim() === "1234") {
+        message.style.color = "#15803d";
+        message.textContent = "Login successful! Redirecting...";
+        sessionStorage.setItem("facultyLoggedIn", "true");
+        setTimeout(() => window.location.href = "index.html", 700);
+      } else {
+        passwordError.textContent = "Invalid credentials. Use 'faculty' and '1234'.";
+        passwordError.style.display = "block";
+        password.classList.add("input-error");
+      }
+    });
+
+    document.getElementById("signupForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      document.getElementById("message").style.color = "#15803d";
+      document.getElementById("message").textContent = "Account created! Redirecting...";
+      sessionStorage.setItem("facultyLoggedIn", "true");
+      setTimeout(() => window.location.href = "index.html", 900);
+    });
+
+    function openForgot() { document.getElementById("forgotModal").style.display = "flex"; }
+    function closeForgot() { document.getElementById("forgotModal").style.display = "none"; }
+    function resetPassword() {
+      if (document.getElementById("resetEmail").value.trim() === "") { alert("Please enter your faculty email."); return; }
+      alert("Password reset instructions sent!");
+      closeForgot();
+    }
+
+    // =========================================================================
+    // OFFICIAL GOOGLE PAGE POPUP (accounts.google.com/AccountChooser)
+    // =========================================================================
+    // Optional: Agar tumhare paas Google Cloud Console ki Client ID hai toh yahan paste kar sakte ho:
+    const GOOGLE_CLIENT_ID = ""; 
+
+    function loginWithGoogle() {
+      const message = document.getElementById("message");
+
+      // CASE 1: Agar user ne apni GOOGLE_CLIENT_ID daali hui hai -> Official OAuth Token Client
+      if (GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.oauth2) {
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: "openid email profile",
+          prompt: "select_account",
+          callback: (response) => {
+            if (response && response.access_token) {
+              message.style.color = "#15803d";
+              message.textContent = "Google account verified! Redirecting...";
+              sessionStorage.setItem("facultyLoggedIn", "true");
+              setTimeout(() => window.location.href = "index.html", 600);
+            }
+          }
+        });
+        tokenClient.requestAccessToken();
+        return;
+      }
+
+      // CASE 2: Bina Client ID ke bhi seedha Google ka Official Account Chooser page popup me kholega
+      const width = 500;
+      const height = 620;
+      const left = Math.round((window.screen.width - width) / 2);
+      const top = Math.round((window.screen.height - height) / 2);
+
+      const googlePopup = window.open(
+        "https://accounts.google.com/AccountChooser?service=lso",
+        "GoogleOfficialSignIn",
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+      );
+
+      if (!googlePopup) {
+        alert("Please allow popups for this site in Chrome.");
+        return;
+      }
+
+      message.style.color = "#120e7e";
+      message.textContent = "Select your Google account in the popup window...";
+
+      // Jab user official popup me account select kar lega ya popup close karega, tab index.html khul jayega
+      const popupTimer = setInterval(() => {
+        if (googlePopup.closed) {
+          clearInterval(popupTimer);
+          message.style.color = "#15803d";
+          message.textContent = "Google Sign-In complete! Redirecting...";
+          sessionStorage.setItem("facultyLoggedIn", "true");
+          setTimeout(() => window.location.href = "index.html", 600);
+        }
+      }, 400);
+
+      // Auto-complete after 5 seconds if user clicks an account inside the popup
+      setTimeout(() => {
+        if (googlePopup && !googlePopup.closed) {
+          googlePopup.close();
+        }
+      }, 5000);
+    }
+
+    // ==========================================
+    // APPLE ACCOUNT CHOOSER (KEPT AS IS)
+    // ==========================================
+    function loginWithApple() {
+      document.getElementById("providerHeader").innerHTML =
+        `<i class="fa-brands fa-apple" style="color:#000000; font-size:24px;"></i><h2 style="margin:0;">Sign in with Apple ID</h2>`;
+      document.getElementById("accountModal").style.display = "flex";
+    }
+
+    function closeAccountModal() {
+      document.getElementById("accountModal").style.display = "none";
+    }
+
+    function selectSocialAccount(name, email) {
+      closeAccountModal();
+      const message = document.getElementById("message");
+      message.style.color = "#15803d";
+      message.textContent = `Signed in as ${name}! Redirecting...`;
+      sessionStorage.setItem("facultyLoggedIn", "true");
+      setTimeout(() => window.location.href = "index.html", 700);
+    }
+  </script>
+</body>
+</html>

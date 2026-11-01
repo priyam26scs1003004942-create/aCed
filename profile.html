@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aCed - Faculty Profile</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eef2ff;
+      --bg-body: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(239, 55, 55, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+    body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+    .app-container { width: 100%; height: 100vh; max-width: 100%; background-color: var(--bg-body); display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+
+    @media (min-width: 768px) {
+      body { padding: 16px 0; }
+      .app-container { max-width: 900px; height: 90vh; border-radius: 20px; overflow: hidden; }
+    }
+
+    /* Header */
+    header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .icon-btn { background: none; border: none; font-size: 1.15rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; width: 36px; text-decoration: none; transition: 0.2s; }
+    .icon-btn:hover { color: var(--primary); }
+    .brand-title { font-family: 'Pacifico', cursive; font-size: 1.6rem; letter-spacing: 0.5px; display: flex; align-items: center; padding-bottom: 2px; }
+    .college-logo-img { height: 32px; width: auto; max-width: 100px; object-fit: contain; }
+
+    /* Main Content */
+    main { flex-grow: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .page-title { font-size: 1.2rem; font-weight: 600; color: var(--text-main); }
+    .page-subtitle { font-size: 0.8rem; color: var(--text-muted); }
+
+    .profile-grid-layout { display: flex; flex-direction: column; gap: 16px; padding-bottom: 12px; }
+
+    /* Faculty Identity Banner */
+    .faculty-banner-card {
+      background: linear-gradient(135deg, #001cf2 0%, #0c1049 100%);
+      border-radius: 16px;
+      padding: 24px;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    @media (min-width: 600px) {
+      .faculty-banner-card {
+        flex-direction: row;
+        text-align: left;
+        gap: 24px;
+      }
+    }
+
+    /* Avatar with Photo Upload */
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .faculty-avatar-large {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+      color: #ffffff;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .faculty-avatar-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .avatar-upload-btn {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      transition: 0.2s;
+    }
+    .avatar-upload-btn:hover {
+      background: var(--primary-light);
+      transform: scale(1.08);
+    }
+
+    .faculty-banner-meta { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .faculty-name-title { font-size: 1.35rem; font-weight: 700; }
+    .faculty-desig { font-size: 0.9rem; color: #93c5fd; font-weight: 500; }
+    .faculty-dept-sub { font-size: 0.82rem; color: #cbd5e1; }
+    .faculty-badge {
+      display: inline-block;
+      margin-top: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      width: fit-content;
+      align-self: center;
+    }
+    @media (min-width: 600px) {
+      .faculty-badge { align-self: flex-start; }
+    }
+
+    /* Workload Stats Grid */
+    .workload-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .workload-stat-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .workload-stat-card .val { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+    .workload-stat-card .desc { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+
+    /* Detail Sections */
+    .profile-card-section {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-head {
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 600px) {
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .detail-tile { display: flex; align-items: flex-start; gap: 12px; }
+    .detail-tile i {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .detail-tile-data { display: flex; flex-direction: column; }
+    .detail-tile-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+    .detail-tile-value { font-size: 0.9rem; color: var(--text-main); font-weight: 600; word-break: break-word; }
+
+    /* Course Chips */
+    .chip-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .subject-chip {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+    }
+    .subject-chip i { color: var(--primary); }
+
+    /* Action Buttons */
+    .profile-footer-actions { display: flex; gap: 12px; margin-top: 4px; }
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      border: none;
+      text-decoration: none;
+    }
+    .btn-secondary { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-logout { background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); }
+    .btn-logout:hover { background: #fee2e2; }
+
+    /* Bottom Navigation */
+    .bottom-nav { flex-shrink: 0; width: 100%; height: 65px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.04); z-index: 20; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--text-muted); font-size: 0.65rem; gap: 4px; transition: color 0.2s ease; flex: 1; height: 100%; }
+    .nav-item i { font-size: 1.05rem; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+    .nav-item:hover { color: var(--primary); }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(3px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #ffffff;
+      width: 100%;
+      max-width: 550px;
+      max-height: 88vh;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.2s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .modal-header h3 { font-size: 1.05rem; color: var(--text-main); font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+    .modal-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 500px) {
+      .form-row.two-col { grid-template-columns: 1fr 1fr; }
+      .form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+    .form-group input {
+      padding: 9px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      outline: none;
+      transition: 0.2s;
+    }
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #f8fafc;
+      flex-shrink: 0;
+    }
+    .btn-cancel {
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-save {
+      padding: 9px 18px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-save:hover { background: #172e6e; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header>
+      <a href="index.html" class="icon-btn" aria-label="Back">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+      
+      <div class="brand-title">
+        <span style="color: var(--primary);">a</span><span style="color: var(--danger);">Ced</span>
+      </div>
+
+      <a href="https://iilm.edu" target="_blank" rel="noopener noreferrer" class="college-logo-link">
+        <img src="iilm webp.jpeg" alt="IILM University" class="college-logo-img" onerror="this.style.display='none'" />
+      </a>
+    </header>
+
+    <main>
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Faculty Profile</h2>
+          <span class="page-subtitle">Academic & Staff Portal</span>
+        </div>
+      </div>
+
+      <div class="profile-grid-layout">
+        
+        <!-- Faculty Hero Banner -->
+        <div class="faculty-banner-card">
+          <div class="avatar-wrapper">
+            <div class="faculty-avatar-large" id="avatarContainer">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <label for="quickPhotoInput" class="avatar-upload-btn" title="Upload Profile Photo">
+              <i class="fa-solid fa-camera"></i>
+            </label>
+            <input type="file" id="quickPhotoInput" accept="image/*" style="display: none;" />
+          </div>
+
+          <div class="faculty-banner-meta">
+            <h2 class="faculty-name-title" id="dispName">Prof. Alex Martin</h2>
+            <div class="faculty-desig" id="dispDesig">Assistant Professor</div>
+            <div class="faculty-dept-sub" id="dispDept">Department of Computer Science & Engineering</div>
+            <div class="faculty-badge" id="dispId">Faculty ID: FAC-CSE-2018-04</div>
+          </div>
+        </div>
+
+        <!-- Academic Workload Stats -->
+        <div class="workload-stats">
+          <div class="workload-stat-card">
+            <div class="val" id="dispCoursesCount">4</div>
+            <div class="desc">Active Courses</div>
+          </div>
+          <div class="workload-stat-card">
+            <div class="val" id="dispStudentsCount">184</div>
+            <div class="desc">Total Students</div>
+          </div>
+          <div class="workload-stat-card">
+            <div class="val" id="dispWorkload">16 hrs</div>
+            <div class="desc">Weekly Workload</div>
+          </div>
+        </div>
+
+        <!-- Contact & Office Info -->
+        <div class="profile-card-section">
+          <div class="section-head">
+            <i class="fa-solid fa-address-book" style="color: var(--primary);"></i>
+            <span>Contact & Office Details</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-tile">
+              <i class="fa-solid fa-at"></i>
+              <div class="detail-tile-data">
+                <span class="detail-tile-label">Official University Email</span>
+                <span class="detail-tile-value" id="dispEmail">alexmartin@iilm.edu</span>
+              </div>
+            </div>
+            <div class="detail-tile">
+              <i class="fa-solid fa-phone"></i>
+              <div class="detail-tile-data">
+                <span class="detail-tile-label">Direct Contact Number</span>
+                <span class="detail-tile-value" id="dispPhone">+91 8954318544</span>
+              </div>
+            </div>
+            <div class="detail-tile">
+              <i class="fa-solid fa-door-open"></i>
+              <div class="detail-tile-data">
+                <span class="detail-tile-label">Office / Cabin</span>
+                <span class="detail-tile-value" id="dispCabin">Block B, 3rd Floor, Cabin 304</span>
+              </div>
+            </div>
+            <div class="detail-tile">
+              <i class="fa-regular fa-clock"></i>
+              <div class="detail-tile-data">
+                <span class="detail-tile-label">Consultation Hours</span>
+                <span class="detail-tile-value" id="dispHours">Mon, Wed, Fri (2:30 PM - 4:00 PM)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teaching Allocation -->
+        <div class="profile-card-section">
+          <div class="section-head">
+            <i class="fa-solid fa-chalkboard-user" style="color: var(--primary);"></i>
+            <span>Assigned Courses (Current Semester)</span>
+          </div>
+          <div class="chip-container" id="dispCourseChips"></div>
+        </div>
+
+        <!-- Academic Background -->
+        <div class="profile-card-section">
+          <div class="section-head">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i>
+            <span>Qualifications & Research</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-tile">
+              <i class="fa-solid fa-award"></i>
+              <div class="detail-tile-data">
+                <span class="detail-tile-label">Highest Qualification</span>
+                <span class="detail-tile-value" id="dispQual">Ph.D. in Computer Science (IIT Delhi)</span>
+              </div>
+            </div>
+            <div class="detail-tile">
+              <i class="fa-solid fa-microchip"></i>
+              <div class="detail-tile-data">
+                <span class="detail-tile-label">Research Specialization</span>
+                <span class="detail-tile-value" id="dispSpec">Machine Learning & Neural Networks</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Actions -->
+        <div class="profile-footer-actions">
+          <button type="button" class="action-btn btn-secondary" onclick="openEditModal()">
+            <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+          </button>
+          
+          <a href="login_page.html" class="action-btn btn-logout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+          </a>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+      </a>
+      <a href="doubts.html" class="nav-item">
+        <i class="fa-regular fa-comments"></i>
+        <span>Doubts</span>
+      </a>
+      <a href="course.html" class="nav-item">
+        <i class="fa-solid fa-book-open"></i>
+        <span>Courses</span>
+      </a>
+      <a href="alert.html" class="nav-item">
+        <i class="fa-regular fa-bell"></i>
+        <span>Alerts</span>
+      </a>
+      <a href="profile.html" class="nav-item active">
+        <i class="fa-solid fa-user-tie"></i>
+        <span>Profile</span>
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Edit Faculty Profile</h3>
+        <button type="button" class="modal-close" onclick="closeProfileModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="profileForm" onsubmit="saveProfileForm(event)" class="modal-form">
+        <div class="modal-body">
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="inpName" required />
+            </div>
+            <div class="form-group">
+              <label>Designation *</label>
+              <input type="text" id="inpDesig" required />
+            </div>
+          </div>
+
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Department *</label>
+              <input type="text" id="inpDept" required />
+            </div>
+            <div class="form-group">
+              <label>Faculty ID *</label>
+              <input type="text" id="inpId" required />
+            </div>
+          </div>
+
+          <div class="form-row three-col">
+            <div class="form-group">
+              <label>Active Courses</label>
+              <input type="number" id="inpCoursesCount" required />
+            </div>
+            <div class="form-group">
+              <label>Total Students</label>
+              <input type="number" id="inpStudentsCount" required />
+            </div>
+            <div class="form-group">
+              <label>Weekly Workload</label>
+              <input type="text" id="inpWorkload" required />
+            </div>
+          </div>
+
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Official Email *</label>
+              <!-- Changed to type="text" so any email/ID format saves without blocking -->
+              <input type="text" id="inpEmail" required />
+            </div>
+            <div class="form-group">
+              <label>Contact Number *</label>
+              <input type="text" id="inpPhone" required />
+            </div>
+          </div>
+
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Office / Cabin</label>
+              <input type="text" id="inpCabin" required />
+            </div>
+            <div class="form-group">
+              <label>Consultation Hours</label>
+              <input type="text" id="inpHours" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Assigned Courses (Comma separated)</label>
+            <input type="text" id="inpCoursesList" required />
+          </div>
+
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Highest Qualification</label>
+              <input type="text" id="inpQual" required />
+            </div>
+            <div class="form-group">
+              <label>Research Specialization</label>
+              <input type="text" id="inpSpec" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Profile Photo</label>
+            <input type="file" id="inpPhoto" accept="image/*" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeProfileModal()">Cancel</button>
+          <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Purana localStorage clear kar diya taaki stuck "ufftfu" hat jaye
+    localStorage.removeItem('aced_single_faculty_profile');
+    const STORAGE_KEY = 'aced_faculty_profile_v2';
+
+    const defaultProfile = {
+      name: "Prof. Alex Martin",
+      desig: "Assistant Professor",
+      dept: "Department of Computer Science & Engineering",
+      id: "FAC-CSE-2018-04",
+      coursesCount: "4",
+      studentsCount: "184",
+      workload: "16 hrs",
+      email: "alexmartin@iilm.edu",
+      phone: "+91 8954318544",
+      cabin: "Block B, 3rd Floor, Cabin 304",
+      hours: "Mon, Wed, Fri (2:30 PM - 4:00 PM)",
+      courses: [
+        "CS301: Data Structures (Sec A)",
+        "CS504: Artificial Intelligence (Sec B)",
+        "CS202: Database Management (Sec A)",
+        "CS401: Computer Networks (Sec C)"
+      ],
+      qual: "Ph.D. in Computer Science (IIT Delhi)",
+      spec: "Machine Learning & Neural Networks",
+      photo: ""
+    };
+
+    let profileData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultProfile;
+    let tempPhotoBase64 = "";
+    const modal = document.getElementById('profileModal');
+
+    function renderProfile() {
+      document.getElementById('dispName').textContent = profileData.name;
+      document.getElementById('dispDesig').textContent = profileData.desig;
+      document.getElementById('dispDept').textContent = profileData.dept;
+      document.getElementById('dispId').textContent = profileData.id.startsWith('Faculty ID:') ? profileData.id : `Faculty ID: ${profileData.id}`;
+      document.getElementById('dispCoursesCount').textContent = profileData.coursesCount;
+      document.getElementById('dispStudentsCount').textContent = profileData.studentsCount;
+      document.getElementById('dispWorkload').textContent = profileData.workload;
+      document.getElementById('dispEmail').textContent = profileData.email;
+      document.getElementById('dispPhone').textContent = profileData.phone;
+      document.getElementById('dispCabin').textContent = profileData.cabin;
+      document.getElementById('dispHours').textContent = profileData.hours;
+      document.getElementById('dispQual').textContent = profileData.qual;
+      document.getElementById('dispSpec').textContent = profileData.spec;
+
+      const avatarContainer = document.getElementById('avatarContainer');
+      if (profileData.photo) {
+        avatarContainer.innerHTML = `<img src="${profileData.photo}" alt="${profileData.name}" />`;
+      } else {
+        avatarContainer.innerHTML = `<i class="fa-solid fa-user-tie"></i>`;
+      }
+
+      const chipContainer = document.getElementById('dispCourseChips');
+      chipContainer.innerHTML = '';
+      const icons = ['fa-code', 'fa-brain', 'fa-database', 'fa-network-wired', 'fa-laptop-code', 'fa-microchip'];
+      profileData.courses.forEach((course, idx) => {
+        const iconClass = icons[idx % icons.length];
+        const chip = document.createElement('div');
+        chip.className = 'subject-chip';
+        chip.innerHTML = `<i class="fa-solid ${iconClass}"></i> ${course}`;
+        chipContainer.appendChild(chip);
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(profileData));
+      } catch (err) {
+        console.warn("Storage limit reached, keeping changes in memory.");
+      }
+    }
+
+    // Direct Avatar Photo Upload
+    document.getElementById('quickPhotoInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        profileData.photo = evt.target.result;
+        renderProfile();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Modal Photo Upload
+    document.getElementById('inpPhoto').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        tempPhotoBase64 = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function openEditModal() {
+      document.getElementById('inpPhoto').value = "";
+      document.getElementById('inpName').value = profileData.name;
+      document.getElementById('inpDesig').value = profileData.desig;
+      document.getElementById('inpDept').value = profileData.dept;
+      document.getElementById('inpId').value = profileData.id.replace('Faculty ID: ', '');
+      document.getElementById('inpCoursesCount').value = profileData.coursesCount;
+      document.getElementById('inpStudentsCount').value = profileData.studentsCount;
+      document.getElementById('inpWorkload').value = profileData.workload;
+      document.getElementById('inpEmail').value = profileData.email;
+      document.getElementById('inpPhone').value = profileData.phone;
+      document.getElementById('inpCabin').value = profileData.cabin;
+      document.getElementById('inpHours').value = profileData.hours;
+      document.getElementById('inpCoursesList').value = profileData.courses.join(', ');
+      document.getElementById('inpQual').value = profileData.qual;
+      document.getElementById('inpSpec').value = profileData.spec;
+      tempPhotoBase64 = profileData.photo || "";
+
+      modal.classList.add('active');
+    }
+
+    function closeProfileModal() {
+      modal.classList.remove('active');
+    }
+
+    function saveProfileForm(e) {
+      e.preventDefault();
+
+      const coursesArray = document.getElementById('inpCoursesList').value
+        .split(',')
+        .map(c => c.trim())
+        .filter(c => c.length > 0);
+
+      profileData = {
+        name: document.getElementById('inpName').value.trim(),
+        desig: document.getElementById('inpDesig').value.trim(),
+        dept: document.getElementById('inpDept').value.trim(),
+        id: document.getElementById('inpId').value.trim(),
+        coursesCount: document.getElementById('inpCoursesCount').value.trim(),
+        studentsCount: document.getElementById('inpStudentsCount').value.trim(),
+        workload: document.getElementById('inpWorkload').value.trim(),
+        email: document.getElementById('inpEmail').value.trim(),
+        phone: document.getElementById('inpPhone').value.trim(),
+        cabin: document.getElementById('inpCabin').value.trim(),
+        hours: document.getElementById('inpHours').value.trim(),
+        courses: coursesArray.length ? coursesArray : ["No Courses Assigned"],
+        qual: document.getElementById('inpQual').value.trim(),
+        spec: document.getElementById('inpSpec').value.trim(),
+        photo: tempPhotoBase64
+      };
+
+      renderProfile();
+      closeProfileModal();
+    }
+
+    renderProfile();
+  </script>
+</body>
+</html>

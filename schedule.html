@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aCed - Schedule & Timetable</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eef2ff;
+      --bg-body: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 12px; /* Thoda compact radius */
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+    body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+    .app-container { width: 100%; height: 100vh; max-width: 100%; background-color: var(--bg-body); display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+
+    @media (min-width: 768px) {
+      body { padding: 16px 0; }
+      .app-container { max-width: 900px; height: 88vh; border-radius: 20px; overflow: hidden; }
+    }
+
+    /* Header - Rescaled */
+    header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .icon-btn { background: none; border: none; font-size: 1.15rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: flex-start; width: 36px; text-decoration: none; transition: color 0.2s ease; }
+    .icon-btn:hover { color: var(--primary); }
+    .brand-title { font-family: 'Pacifico', cursive; font-size: 1.5rem; letter-spacing: 0.5px; display: flex; align-items: center; padding-bottom: 2px; }
+    .college-logo-link { display: flex; align-items: center; justify-content: flex-end; text-decoration: none; }
+    .college-logo-img { height: 30px; width: auto; max-width: 100px; object-fit: contain; }
+
+    /* Main Content - Rescaled */
+    main { flex-grow: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .page-title { font-size: 1.15rem; font-weight: 600; color: var(--text-main); }
+    
+    /* CUSTOM DATE PICKER STYLES - Compact */
+    .date-picker-badge { 
+      background: var(--primary-light); 
+      color: var(--primary); 
+      padding: 5px 8px; 
+      border-radius: 6px; 
+      font-size: 0.75rem; 
+      font-weight: 600; 
+      border: 1px solid transparent; 
+      outline: none; 
+      cursor: pointer; 
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .date-picker-badge:hover { border-color: var(--primary); }
+    .date-picker-badge::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; transition: 0.2s; }
+    .date-picker-badge::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+    /* Day Selector - Rescaled */
+    .days-slider { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .days-slider::-webkit-scrollbar { display: none; }
+    .day-chip { background: #ffffff; border: 1px solid var(--border-color); min-width: 52px; padding: 8px 4px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .day-chip span:first-child { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; margin-bottom: 2px; }
+    .day-chip span:last-child { font-size: 1rem; color: var(--text-main); font-weight: 600; }
+    .day-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(30, 58, 138, 0.15); }
+    .day-chip.active span { color: #fff; }
+
+    /* Timeline Container - Rescaled */
+    .timeline { position: relative; margin-top: 5px; display: flex; flex-direction: column; gap: 16px; }
+    
+    /* Individual Schedule Card Row */
+    .schedule-row { display: flex; gap: 12px; position: relative; }
+    
+    .time-column { width: 55px; flex-shrink: 0; text-align: right; display: flex; flex-direction: column; }
+    .time-start { font-size: 0.8rem; font-weight: 600; color: var(--text-main); }
+    .time-end { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* The dot and line */
+    .timeline-divider { position: relative; width: 10px; display: flex; flex-direction: column; align-items: center; }
+    .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; z-index: 2; margin-top: 4px; border: 2px solid var(--bg-body); }
+    .timeline-line { position: absolute; top: 12px; bottom: -20px; width: 2px; background: #e2e8f0; z-index: 1; }
+    .schedule-row:last-child .timeline-line { display: none; }
+
+    /* Current Class Highlight */
+    .schedule-row.ongoing .timeline-dot { background: var(--danger); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
+    .schedule-row.ongoing .timeline-line { background: var(--danger); }
+
+    /* Class Cards - Rescaled */
+    .class-card { flex-grow: 1; background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 6px; border-left: 3px solid var(--primary); transition: transform 0.2s; }
+    .class-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    
+    /* Colors for different types */
+    .card-theory { border-left-color: var(--primary); }
+    .card-lab { border-left-color: var(--success); }
+    .card-meeting { border-left-color: var(--warning); }
+    .card-break { border-left-color: #94a3b8; background: #f8fafc; }
+
+    .class-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .class-title { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+    
+    .type-badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+    .type-theory { background: var(--primary-light); color: var(--primary); }
+    .type-lab { background: #dcfce7; color: var(--success); }
+    .type-meeting { background: #fef3c7; color: var(--warning); }
+
+    .class-details { display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem; color: var(--text-muted); }
+    .detail-item { display: flex; align-items: center; gap: 5px; }
+    .detail-item i { width: 12px; text-align: center; }
+
+    /* Bottom Nav - Rescaled */
+    .bottom-nav { flex-shrink: 0; width: 100%; height: 65px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.04); z-index: 20; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--text-muted); font-size: 0.65rem; gap: 4px; transition: color 0.2s ease; flex: 1; height: 100%; }
+    .nav-item i { font-size: 1.05rem; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+    .nav-item:hover { color: var(--primary); }
+
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Header with Back Button -->
+    <header>
+      <a href="index.html" class="icon-btn" aria-label="Back">
+        <i class="fa-solid fa-arrow-left"></i>
+      </a>
+      
+      <div class="brand-title">
+        <span id="textA" style="color: var(--primary);">a</span>
+        <span id="textCed" style="color: var(--danger);">Ced</span>
+      </div>
+
+      <a href="https://iilm.edu" target="_blank" rel="noopener noreferrer" class="college-logo-link">
+        <img src="iilm webp.jpeg" alt="IILM University" class="college-logo-img" />
+      </a>
+    </header>
+
+    <main>
+      <!-- Page Title & Date Picker -->
+      <div class="page-header">
+        <h2 class="page-title">Timetable</h2>
+        
+        <input type="date" class="date-picker-badge" id="scheduleDate" title="Select custom date">
+        
+      </div>
+
+      <!-- Days Slider -->
+      <div class="days-slider">
+        <div class="day-chip">
+          <span>Mon</span>
+          <span>16</span>
+        </div>
+        <div class="day-chip active">
+          <span>Tue</span>
+          <span>17</span>
+        </div>
+        <div class="day-chip">
+          <span>Wed</span>
+          <span>18</span>
+        </div>
+        <div class="day-chip">
+          <span>Thu</span>
+          <span>19</span>
+        </div>
+        <div class="day-chip">
+          <span>Fri</span>
+          <span>20</span>
+        </div>
+        <div class="day-chip">
+          <span>Sat</span>
+          <span>21</span>
+        </div>
+      </div>
+
+      <!-- Vertical Timeline Schedule -->
+      <div class="timeline">
+        
+        <!-- Completed Class -->
+        <div class="schedule-row">
+          <div class="time-column">
+            <span class="time-start">09:00</span>
+            <span class="time-end">10:30 AM</span>
+          </div>
+          <div class="timeline-divider">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="class-card card-theory">
+            <div class="class-header">
+              <span class="class-title">Quantum Physics</span>
+              <span class="type-badge type-theory">Theory</span>
+            </div>
+            <div class="class-details">
+              <div class="detail-item"><i class="fa-solid fa-graduation-cap"></i> B.Tech CS - Sem 3 (Sec A)</div>
+              <div class="detail-item"><i class="fa-solid fa-location-dot"></i> Room: LT-4, Block B</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ONGOING Class (Highlighted in Red) -->
+        <div class="schedule-row ongoing">
+          <div class="time-column">
+            <span class="time-start" style="color: var(--danger);">11:00</span>
+            <span class="time-end">12:30 PM</span>
+          </div>
+          <div class="timeline-divider">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="class-card card-lab">
+            <div class="class-header">
+              <span class="class-title">C Programming Lab</span>
+              <span class="type-badge type-lab">Lab</span>
+            </div>
+            <div class="class-details">
+              <div class="detail-item"><i class="fa-solid fa-graduation-cap"></i> B.Tech CS - Sem 1 (Sec C)</div>
+              <div class="detail-item"><i class="fa-solid fa-location-dot"></i> Room: Computer Lab 2</div>
+              <div class="detail-item" style="color: var(--danger); font-weight: 500; margin-top: 2px;">
+                <i class="fa-solid fa-circle-play" style="animation: blink 1.5s infinite;"></i> Class is live
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Break / Lunch -->
+        <div class="schedule-row">
+          <div class="time-column">
+            <span class="time-start">12:30</span>
+            <span class="time-end">01:30 PM</span>
+          </div>
+          <div class="timeline-divider">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="class-card card-break">
+            <div class="class-header">
+              <span class="class-title" style="color: var(--text-muted);"><i class="fa-solid fa-mug-hot"></i> Lunch Break</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Faculty Meeting -->
+        <div class="schedule-row">
+          <div class="time-column">
+            <span class="time-start">02:00</span>
+            <span class="time-end">03:30 PM</span>
+          </div>
+          <div class="timeline-divider">
+            <div class="timeline-dot"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="class-card card-meeting">
+            <div class="class-header">
+              <span class="class-title">Dept. Faculty Meeting</span>
+              <span class="type-badge type-meeting">Meeting</span>
+            </div>
+            <div class="class-details">
+              <div class="detail-item"><i class="fa-solid fa-users"></i> All CS Faculty</div>
+              <div class="detail-item"><i class="fa-solid fa-location-dot"></i> Room: Conference Hall</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <a href="doubts.html" class="nav-item"><i class="fa-regular fa-comments"></i><span>Doubts</span></a>
+      <a href="course.html" class="nav-item"><i class="fa-solid fa-book-open"></i><span>Courses</span></a>
+      <a href="alerts.html" class="nav-item"><i class="fa-regular fa-bell"></i><span>Alerts</span></a>
+      <a href="profile.html" class="nav-item"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+    </nav>
+
+  </div>
+
+  <style>
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+  </style>
+
+  <script>
+    // Set Today's Date automatically in the Date Picker
+    const scheduleDateInput = document.getElementById('scheduleDate');
+    if(scheduleDateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      scheduleDateInput.value = today;
+      
+      scheduleDateInput.addEventListener('change', function() {
+        console.log("Selected Date: ", this.value);
+      });
+    }
+
+    // Din (Days) select karne ka script
+    const dayChips = document.querySelectorAll('.day-chip');
+    dayChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        dayChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aCed - Assignments & Grades</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eef2ff;
+      --bg-body: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --success-light: #dcfce7;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+    .app-container { width: 100%; height: 100vh; max-width: 100%; background-color: var(--bg-body); display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+
+    @media (min-width: 768px) {
+      body { padding: 24px 0; }
+      .app-container { max-width: 900px; height: 85vh; border-radius: 24px; overflow: hidden; }
+    }
+
+    /* Header */
+    header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #ffffff; border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .icon-btn { background: none; border: none; font-size: 1.25rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: flex-start; width: 40px; transition: color 0.2s ease; }
+    .icon-btn:hover { color: var(--primary); }
+    .brand-title { font-family: 'Pacifico', cursive; font-size: 1.8rem; letter-spacing: 1px; display: flex; align-items: center; padding-bottom: 4px; }
+    .college-logo-img { height: 36px; width: auto; max-width: 110px; object-fit: contain; }
+    
+    /* Main Content */
+    main { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Page Title & Back */
+    .title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .back-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; transition: background 0.2s; }
+    .back-btn:hover { background: var(--border-color); }
+    .page-title { font-size: 1.3rem; font-weight: 600; color: var(--text-main); }
+
+    /* Search & Filters */
+    .filter-wrapper { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
+    .search-box { flex-grow: 1; min-width: 200px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); }
+    .search-box i { color: var(--text-muted); font-size: 1.05rem; }
+    .search-box input { border: none; background: transparent; outline: none; font-size: 0.88rem; width: 100%; color: var(--text-main); }
+    
+    .select-dropdown { background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; font-size: 0.85rem; outline: none; color: var(--text-main); font-weight: 500; cursor: pointer; }
+    
+    .chips-group { display: flex; background: #e2e8f0; padding: 3px; border-radius: 10px; gap: 2px; }
+    .chip-btn { border: none; padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; background: transparent; color: var(--text-muted); transition: 0.2s; }
+    .chip-btn.active { background: var(--primary); color: #ffffff; font-weight: 600; }
+
+    /* Stats Dashboard Row */
+    .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .stat-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; display: flex; align-items: flex-start; justify-content: space-between; box-shadow: var(--shadow); }
+    .stat-info span { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; display: block; margin-bottom: 2px; }
+    .stat-info h2 { font-size: 1.6rem; font-weight: 700; color: var(--text-main); line-height: 1.2; }
+    .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .stat-icon.red { background: #fee2e2; color: var(--danger); }
+    .stat-icon.blue { background: #eef2ff; color: var(--primary); }
+    .stat-icon.green { background: #dcfce7; color: var(--success); }
+
+    /* Assignment Lists */
+    .assignment-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 24px; }
+    .assign-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); position: relative; overflow: hidden; transition: transform 0.2s; }
+    .assign-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+    .assign-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--primary); border-radius: 16px 0 0 16px; }
+
+    .assign-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .course-details h3 { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
+    .course-badge { font-size: 0.75rem; font-weight: 600; color: var(--primary); background: var(--primary-light); padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 5px; }
+    
+    .status-alert { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); text-align: right; }
+    .status-alert strong.pending-alert { color: var(--danger); font-weight: 600; background: var(--danger-light); padding: 2px 6px; border-radius: 4px; }
+    .status-alert strong.done-alert { color: var(--success); font-weight: 600; background: var(--success-light); padding: 2px 6px; border-radius: 4px; }
+
+    .assign-desc { font-size: 1.1rem; font-weight: 600; color: var(--text-main); line-height: 1.3; }
+    .assign-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 12px; }
+    
+    .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 4px; }
+    
+    .progress-bar-group { display: flex; flex-direction: column; gap: 4px; width: 140px; }
+    .prog-text { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-align: right; }
+    .prog-bar-bg { width: 100%; height: 5px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .prog-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s ease; }
+    
+    .action-btn { border: none; background: var(--primary); color: #ffffff; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(30, 58, 138, 0.15); }
+    .action-btn:hover { background: #172554; }
+    .action-btn.secondary { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); box-shadow: none; }
+    .action-btn.secondary:hover { background: var(--primary-light); }
+
+    /* Interactive Grading Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.25s ease; padding: 16px; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    
+    .modal-box { background: #fff; width: 100%; max-width: 480px; border-radius: 18px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); transform: translateY(25px); transition: 0.25s ease; display: flex; flex-direction: column; max-height: 85vh; }
+    .modal-overlay.active .modal-box { transform: translateY(0); }
+    
+    .modal-header { padding: 18px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1.1rem; color: var(--text-main); font-weight: 600; }
+    .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
+    .close-btn:hover { color: var(--danger); }
+    
+    .modal-body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+    .submission-list-header { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+    
+    .student-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1.5px solid var(--border-color); padding: 10px 14px; border-radius: 10px; transition: 0.2s; }
+    .student-row:hover { border-color: var(--primary); background: var(--primary-light); }
+    .student-info strong { display: block; font-size: 0.85rem; color: var(--text-main); }
+    .student-info span { font-size: 0.72rem; color: var(--text-muted); }
+    
+    .grading-input-wrap { display: flex; align-items: center; gap: 6px; }
+    .marks-input { width: 52px; padding: 6px 8px; border: 1.5px solid var(--border-color); border-radius: 6px; outline: none; font-size: 0.85rem; font-weight: 600; text-align: center; color: var(--text-main); }
+    .marks-input:focus { border-color: var(--primary); }
+    .max-label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+
+    .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px; }
+    .cancel-modal-btn { padding: 9px 16px; background: #e2e8f0; color: var(--text-main); border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
+    .save-modal-btn { padding: 9px 18px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .save-modal-btn:hover { background: #172554; }
+
+    /* Toast */
+    .toast-msg { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(30px); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 30px; font-size: 0.82rem; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transition: 0.3s ease; z-index: 2000; display: flex; align-items: center; gap: 8px; }
+    .toast-msg.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .toast-msg i { color: var(--success); }
+
+    /* Bottom Nav */
+    .bottom-nav { flex-shrink: 0; width: 100%; height: 75px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; z-index: 20; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--text-muted); font-size: 0.72rem; gap: 4px; transition: color 0.2s ease; flex: 1; height: 100%; }
+    .nav-item i { font-size: 1.15rem; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header>
+      <button class="icon-btn" aria-label="Open Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="brand-title">
+        <span style="color: var(--primary);">a</span><span style="color: var(--danger);">Ced</span>
+      </div>
+      <a href="https://iilm.edu" target="_blank" class="college-logo-link">
+        <img src="iilm webp.jpeg" alt="IILM" class="college-logo-img" />
+      </a>
+    </header>
+
+    <main>
+      <!-- Title Section with Back Button to index.html -->
+      <div class="title-row">
+        <button class="back-btn" onclick="window.location.href='index.html'" aria-label="Back to Dashboard">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h2 class="page-title">Assignments & Grades</h2>
+      </div>
+
+      <!-- Search and Filter Bar -->
+      <div class="filter-wrapper">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" placeholder="Search assignment or batch..." onkeyup="filterAssignments()">
+        </div>
+        <select class="select-dropdown" id="courseFilter" onchange="filterAssignments()">
+          <option value="all">All Courses</option>
+          <option value="DSA">DSA</option>
+          <option value="Physics">Quantum Physics</option>
+          <option value="DBMS">DBMS</option>
+        </select>
+        <div class="chips-group">
+          <button class="chip-btn active" onclick="filterByChip('all', this)">All</button>
+          <button class="chip-btn" onclick="filterByChip('pending', this)">Pending</button>
+          <button class="chip-btn" onclick="filterByChip('graded', this)">Graded</button>
+        </div>
+      </div>
+
+      <!-- Live Counters Dashboard -->
+      <div class="overview-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <span>Assignments Pending</span>
+            <h2 id="pendingCounter">24</h2>
+          </div>
+          <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <span>Graded Assignments</span>
+            <h2 id="gradedCounter">148</h2>
+          </div>
+          <div class="stat-icon blue"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <span>Avg. Class Score</span>
+            <h2>82%</h2>
+          </div>
+          <div class="stat-icon green"><i class="fa-solid fa-chart-line"></i></div>
+        </div>
+      </div>
+
+      <!-- Assignment Cards List -->
+      <div class="assignment-list" id="assignmentList">
+        
+        <!-- Card 1 -->
+        <div class="assign-card" data-course="DSA" data-status="pending" id="cardDSA">
+          <div class="assign-header">
+            <div class="course-details">
+              <h3>Data Structures & Algorithms</h3>
+              <span class="course-badge">CS-304 Sec A • B.Tech CS</span>
+            </div>
+            <div class="status-alert">
+              <strong class="pending-alert" id="statusLabelDSA">16 Pending Review</strong><br>
+              <span id="statSubDSA">48/64 Graded</span>
+            </div>
+          </div>
+          <div class="assign-desc">Assignment 1: Array & Linked Lists</div>
+          <div class="assign-meta">
+            <span><i class="fa-regular fa-star"></i> Max Marks: 20</span>
+            <span><i class="fa-regular fa-calendar"></i> Due: 28 Oct 2026</span>
+          </div>
+          <div class="card-footer">
+            <div class="progress-bar-group">
+              <span class="prog-text" id="progTextDSA">65% Graded</span>
+              <div class="prog-bar-bg"><div class="prog-bar-fill" id="progBarDSA" style="width: 65%;"></div></div>
+            </div>
+            <button class="action-btn" onclick="openGradingModal('DSA', 'Assignment 1', 16, 20)">Grade Submissions</button>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="assign-card" data-course="Physics" data-status="graded" id="cardPhysics">
+          <div class="assign-header">
+            <div class="course-details">
+              <h3>Quantum Physics</h3>
+              <span class="course-badge">PHY-102 Sec B • B.Sc</span>
+            </div>
+            <div class="status-alert">
+              <strong class="done-alert">Grading Completed</strong><br>
+              <span>48/48 Graded • 0 Pending</span>
+            </div>
+          </div>
+          <div class="assign-desc">Assignment 2: Wave Function</div>
+          <div class="assign-meta">
+            <span><i class="fa-regular fa-star"></i> Max Marks: 15</span>
+            <span><i class="fa-regular fa-calendar"></i> Due: 18 Oct 2026</span>
+          </div>
+          <div class="card-footer">
+            <div class="progress-bar-group">
+              <span class="prog-text">100% Graded</span>
+              <div class="prog-bar-bg"><div class="prog-bar-fill" style="width: 100%; background: var(--success);"></div></div>
+            </div>
+            <button class="action-btn secondary" onclick="viewGradesAlert()">View Grades</button>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="assign-card" data-course="DBMS" data-status="pending" id="cardDBMS">
+          <div class="assign-header">
+            <div class="course-details">
+              <h3>Database Management Systems</h3>
+              <span class="course-badge">CS-401 Sec A • B.Tech</span>
+            </div>
+            <div class="status-alert">
+              <strong class="pending-alert" id="statusLabelDBMS">8 Pending Review</strong><br>
+              <span id="statSubDBMS">52/60 Graded</span>
+            </div>
+          </div>
+          <div class="assign-desc">Assignment 3: SQL Subqueries</div>
+          <div class="assign-meta">
+            <span><i class="fa-regular fa-star"></i> Max Marks: 20</span>
+            <span><i class="fa-regular fa-calendar"></i> Due: 25 Oct 2026</span>
+          </div>
+          <div class="card-footer">
+            <div class="progress-bar-group">
+              <span class="prog-text" id="progTextDBMS">85% Graded</span>
+              <div class="prog-bar-bg"><div class="prog-bar-fill" id="progBarDBMS" style="width: 85%;"></div></div>
+            </div>
+            <button class="action-btn" onclick="openGradingModal('DBMS', 'Assignment 3', 8, 20)">Grade Submissions</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <a href="doubts.html" class="nav-item"><i class="fa-regular fa-comments"></i><span>Doubts</span></a>
+      <a href="courses.html" class="nav-item"><i class="fa-solid fa-book-open"></i><span>Courses</span></a>
+      <a href="alert.html" class="nav-item"><i class="fa-regular fa-bell"></i><span>Alerts</span></a>
+      <a href="profile.html" class="nav-item"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+    </nav>
+  </div>
+
+  <!-- Interactive Grading Modal Popup -->
+  <div class="modal-overlay" id="gradingModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalSubject">DSA • Grading Panel</h3>
+        <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;" id="modalHeadingText">Grade Un-reviewed student submissions for Assignment 1</p>
+        <div class="submission-list-header">Student Submissions (Pending Rating)</div>
+        
+        <div id="studentContainer" style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
+          <!-- Dynamically populated student grading rows -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-modal-btn" onclick="closeModal()">Close</button>
+        <button class="save-modal-btn" onclick="submitMarks()">Submit Grades</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Toast -->
+  <div class="toast-msg" id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastText">Action completed successfully!</span>
+  </div>
+
+  <script>
+    let activeSubjectId = "";
+    let mockStudents = {
+      "DSA": [
+        { id: "S-104", name: "Alexander Pierce", image: "", roll: "220104", initialPending: true },
+        { id: "S-105", name: "Ishaan Sharma", image: "", roll: "220108", initialPending: true },
+        { id: "S-109", name: "Aaradhya Kapoor", image: "", roll: "220120", initialPending: true }
+      ],
+      "DBMS": [
+        { id: "S-201", name: "Meera Joshi", image: "", roll: "220401", initialPending: true },
+        { id: "S-204", name: "Kartik Nair", image: "", roll: "220408", initialPending: true }
+      ]
+    };
+
+    let statistics = {
+      pending: 24,
+      graded: 148,
+      dsa: { pending: 16, total: 64 },
+      dbms: { pending: 8, total: 60 }
+    };
+
+    function filterByChip(status, btn) {
+      document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterWithFilters(status, document.getElementById('courseFilter').value, document.getElementById('searchInput').value.toLowerCase());
+    }
+
+    function filterAssignments() {
+      const activeChip = document.querySelector('.chip-btn.active').innerText.toLowerCase();
+      const courseVal = document.getElementById('courseFilter').value;
+      const searchVal = document.getElementById('searchInput').value.toLowerCase();
+      filterWithFilters(activeChip, courseVal, searchVal);
+    }
+
+    function filterWithFilters(chip, course, search) {
+      document.querySelectorAll('.assign-card').forEach(card => {
+        const matchCourse = (course === "all" || card.dataset.course === course);
+        const matchChip = (chip === "all" || card.dataset.status === chip);
+        const textContent = card.innerText.toLowerCase();
+        const matchSearch = textContent.includes(search);
+
+        if (matchCourse && matchChip && matchSearch) {
+          card.style.display = "flex";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+
+    function openGradingModal(sub, assName, pendingLeft, maxMarks) {
+      activeSubjectId = sub;
+      document.getElementById('modalSubject').innerText = `${sub} • Assessment Grading`;
+      document.getElementById('modalHeadingText').innerText = `Add grades for "${assName}" (Target: Sec A Batch). Max Marks: ${maxMarks}`;
+      
+      const listDiv = document.getElementById('studentContainer');
+      listDiv.innerHTML = "";
+      
+      const data = mockStudents[sub];
+      if (!data || data.length === 0) {
+        listDiv.innerHTML = `<p style="font-size:0.82rem; text-align:center; color:var(--text-muted); padding: 12px 0;">All currently pending submissions have been graded!</p>`;
+        return;
+      }
+
+      data.forEach((student, index) => {
+        listDiv.innerHTML += `
+          <div class="student-row">
+            <div class="student-info">
+              <strong>${student.name}</strong>
+              <span>Roll: ${student.roll} | ID: ${student.id}</span>
+            </div>
+            <div class="grading-input-wrap">
+              <input type="number" class="marks-input" max="${maxMarks}" placeholder="-" id="marks_${index}">
+              <span class="max-label">/${maxMarks}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('gradingModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('gradingModal').classList.remove('active');
+    }
+
+    function submitMarks() {
+      const sub = activeSubjectId;
+      const list = mockStudents[sub];
+      if (!list || list.length === 0) {
+        closeModal();
+        return;
+      }
+
+      let gradedCountThisSession = 0;
+      list.forEach((student, index) => {
+        const val = document.getElementById(`marks_${index}`).value;
+        if(val !== "") {
+          gradedCountThisSession++;
+        }
+      });
+
+      if (gradedCountThisSession === 0) {
+        alert("Please enter marks for at least one student before saving!");
+        return;
+      }
+
+      // Update counters & variables
+      statistics.pending -= gradedCountThisSession;
+      statistics.graded += gradedCountThisSession;
+      document.getElementById('pendingCounter').innerText = statistics.pending;
+      document.getElementById('gradedCounter').innerText = statistics.graded;
+
+      if(sub === "DSA") {
+        statistics.dsa.pending = Math.max(0, statistics.dsa.pending - gradedCountThisSession);
+        const statsLabel = document.getElementById('statusLabelDSA');
+        if (statistics.dsa.pending === 0) {
+          statsLabel.className = "done-alert";
+          statsLabel.innerText = "Grading Completed";
+        } else {
+          statsLabel.innerText = `${statistics.dsa.pending} Pending Review`;
+        }
+        const gradedTotal = statistics.dsa.total - statistics.dsa.pending;
+        document.getElementById('statSubDSA').innerText = `${gradedTotal}/${statistics.dsa.total} Graded`;
+        
+        const progValue = Math.round((gradedTotal / statistics.dsa.total) * 100);
+        document.getElementById('progTextDSA').innerText = `${progValue}% Graded`;
+        document.getElementById('progBarDSA').style.width = `${progValue}%`;
+        if (progValue === 100) document.getElementById('progBarDSA').style.background = "var(--success)";
+      } 
+      else if(sub === "DBMS") {
+        statistics.dbms.pending = Math.max(0, statistics.dbms.pending - gradedCountThisSession);
+        const statsLabel = document.getElementById('statusLabelDBMS');
+        if (statistics.dbms.pending === 0) {
+          statsLabel.className = "done-alert";
+          statsLabel.innerText = "Grading Completed";
+        } else {
+          statsLabel.innerText = `${statistics.dbms.pending} Pending Review`;
+        }
+        const gradedTotal = statistics.dbms.total - statistics.dbms.pending;
+        document.getElementById('statSubDBMS').innerText = `${gradedTotal}/${statistics.dbms.total} Graded`;
+
+        const progValue = Math.round((gradedTotal / statistics.dbms.total) * 100);
+        document.getElementById('progTextDBMS').innerText = `${progValue}% Graded`;
+        document.getElementById('progBarDBMS').style.width = `${progValue}%`;
+        if (progValue === 100) document.getElementById('progBarDBMS').style.background = "var(--success)";
+      }
+
+      // Clear mockup graded student list
+      mockStudents[sub] = list.filter((_, index) => document.getElementById(`marks_${index}`).value === "");
+
+      closeModal();
+      showToast(`${gradedCountThisSession} Grades Submissions Updated!`);
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastText').innerText = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    function viewGradesAlert() {
+      showToast("Grades are locked. Published Successfully!");
+    }
+  </script>
+</body>
+</html>

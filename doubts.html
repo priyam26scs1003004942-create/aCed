@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>facultyX - Doubts</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #7c54ff; --primary-light: #eef2ff; --bg-body: #f1f5f9; --card-bg: #ffffff;
+      --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0; --radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .app-container { width: 100%; height: 100vh; max-width: 100%; background-color: var(--bg-body); display: flex; flex-direction: column; position: relative; }
+    @media (min-width: 768px) { body { padding: 24px 0; } .app-container { max-width: 900px; height: 85vh; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); } }
+    
+    header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #ffffff; border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .back-btn { color: var(--text-main); font-size: 1.25rem; text-decoration: none; width: 40px; }
+    .page-title { font-weight: 600; color: var(--primary); font-size: 1.15rem; }
+    .college-logo-img { height: 36px; max-width: 110px; object-fit: contain; }
+
+    main { flex-grow: 1; overflow-y: auto; padding: 20px; }
+
+    /* Filter Section */
+    .filter-section { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .filter-select { flex: 1; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 0.9rem; outline: none; background: #fff; color: var(--text-main); font-family: 'Poppins', sans-serif; font-weight: 500; cursor: pointer; }
+    
+    .section-title { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+
+    /* Doubts Card Styling (Updated for Reply Box) */
+    .doubt-card { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; border-left: 4px solid var(--primary); transition: all 0.3s ease; }
+    .doubt-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+    .doubt-content { flex: 1; padding-right: 15px; }
+    .student-name { font-weight: 600; font-size: 1rem; color: var(--text-main); margin-bottom: 2px; }
+    .student-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+    .doubt-text { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); }
+    
+    /* Reply Button */
+    .reply-btn { background: var(--primary-light); color: var(--primary); border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 5px; }
+    .reply-btn:hover { background: var(--primary); color: white; }
+
+    /* NEW: Reply Box System */
+    .reply-box { display: none; flex-direction: column; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 12px; }
+    .reply-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); font-family: 'Poppins', sans-serif; font-size: 0.85rem; resize: none; outline: none; background: #fafafa; }
+    .reply-input:focus { border-color: var(--primary); background: #fff; }
+    .send-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; align-self: flex-end; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+
+    .bottom-nav { flex-shrink: 0; width: 100%; height: 75px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 0.72rem; text-decoration: none; gap: 4px; flex: 1; height: 100%; justify-content: center; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <a href="index.html" class="back-btn" aria-label="Back"><i class="fa-solid fa-arrow-left"></i></a>
+      <div class="page-title">Doubts Section</div>
+      <img src="iilm webp.jpeg" alt="IILM Logo" class="college-logo-img" />
+    </header>
+
+    <main>
+      <!-- Smart Filter -->
+      <div class="filter-section">
+        <i class="fa-solid fa-filter" style="font-size: 1.1rem; color: var(--text-muted);"></i>
+        <select class="filter-select" id="sectionFilter" onchange="filterDoubts()">
+          <option value="all">All Sections & Years</option>
+          <option value="12A">CSE15 | 1st year</option>
+          <option value="12B">CSE15 | 2nd year</option>
+          <option value="11A">CSE16 | 3rd year</option>
+          <option value="11A">CSE17 | 4th year</option>
+        </select>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-clipboard-question"></i> All Student Doubts</div>
+      
+      <div id="doubtsContainer">
+        <!-- Doubt 1 -->
+        <div class="doubt-card" data-section="12A">
+          <div class="doubt-top">
+            <div class="doubt-content">
+              <div class="student-name">Aarav Sharma</div>
+              <div class="student-meta">CSE9| 2026</div>
+              <div class="doubt-text">"Sir, can you extend the deadline of the assignment submission"</div>
+            </div>
+            <button class="reply-btn" onclick="toggleReply(this)"><i class="fa-solid fa-reply"></i> Reply</button>
+          </div>
+          <!-- Hidden Reply Box -->
+          <div class="reply-box">
+            <textarea class="reply-input" rows="2" placeholder="Type your reply to Aarav..."></textarea>
+            <button class="send-btn" onclick="sendReply(this)"><i class="fa-solid fa-paper-plane"></i> Send</button>
+          </div>
+        </div>
+
+        <!-- Doubt 2 -->
+        <div class="doubt-card" data-section="11A">
+          <div class="doubt-top">
+            <div class="doubt-content">
+              <div class="student-name">Priya Patel</div>
+              <div class="student-meta">CSE7| 2026</div>
+              <div class="doubt-text">"sir , how many chapters come in the mid semester."</div>
+            </div>
+            <button class="reply-btn" onclick="toggleReply(this)"><i class="fa-solid fa-reply"></i> Reply</button>
+          </div>
+          <!-- Hidden Reply Box -->
+          <div class="reply-box">
+            <textarea class="reply-input" rows="2" placeholder="Type your reply to Priya..."></textarea>
+            <button class="send-btn" onclick="sendReply(this)"><i class="fa-solid fa-paper-plane"></i> Send</button>
+          </div>
+        </div>
+
+        <!-- Doubt 3 -->
+        <div class="doubt-card" data-section="12A">
+          <div class="doubt-top">
+            <div class="doubt-content">
+              <div class="student-name">Rohan Gupta</div>
+              <div class="student-meta">CSE14 | 2026</div>
+              <div class="doubt-text">"sir langrange's multipliers method samjh nahi aya?"</div>
+            </div>
+            <button class="reply-btn" onclick="toggleReply(this)"><i class="fa-solid fa-reply"></i> Reply</button>
+          </div>
+          <!-- Hidden Reply Box -->
+          <div class="reply-box">
+            <textarea class="reply-input" rows="2" placeholder="Type your reply to Rohan..."></textarea>
+            <button class="send-btn" onclick="sendReply(this)"><i class="fa-solid fa-paper-plane"></i> Send</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+      <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <a href="doubts.html" class="nav-item active"><i class="fa-regular fa-comments"></i><span>Doubts</span></a>
+      <a href="course.html" class="nav-item"><i class="fa-solid fa-book-open"></i><span>Courses</span></a>
+      <a href="alert.html" class="nav-item"><i class="fa-regular fa-bell"></i><span>Alerts</span></a>
+      <a href="profile.html" class="nav-item"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+    </nav>
+
+  </div>
+
+  <script>
+    // 1. Filtering Logic
+    function filterDoubts() {
+      const selectedValue = document.getElementById('sectionFilter').value;
+      const allCards = document.querySelectorAll('.doubt-card');
+
+      allCards.forEach(card => {
+        if (selectedValue === 'all' || card.getAttribute('data-section') === selectedValue) {
+          card.style.display = 'flex'; // Dikhao
+        } else {
+          card.style.display = 'none'; // Chupao
+        }
+      });
+    }
+
+    // 2. Open Reply Box & Pop-up Keyboard
+    function toggleReply(btn) {
+      const card = btn.closest('.doubt-card');
+      const replyBox = card.querySelector('.reply-box');
+      const inputField = replyBox.querySelector('.reply-input');
+
+      if (replyBox.style.display === 'none' || replyBox.style.display === '') {
+        replyBox.style.display = 'flex'; // Box dikhao
+        inputField.focus(); // 🔥 YAHI CODE KEYBOARD BAHAR LAYEGA
+        btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel';
+        btn.style.background = '#fee2e2';
+        btn.style.color = '#ef4444';
+      } else {
+        replyBox.style.display = 'none'; // Box chupao
+        btn.innerHTML = '<i class="fa-solid fa-reply"></i> Reply';
+        btn.style.background = 'var(--primary-light)';
+        btn.style.color = 'var(--primary)';
+      }
+    }
+
+    // 3. Send Reply Logic (Just for UI feeling)
+    function sendReply(btn) {
+      const card = btn.closest('.doubt-card');
+      const inputField = card.querySelector('.reply-input');
+      
+      if(inputField.value.trim() !== "") {
+        // Send hone ka visual effect
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Sent!';
+        btn.style.background = '#10b981'; // Green color
+        setTimeout(() => {
+          card.style.display = 'none'; // Doubt solve ho gaya toh hata do
+        }, 800);
+      } else {
+        alert("Sir, please type a reply first! 😅");
+      }
+    }
+  </script>
+</body>
+</html>
+

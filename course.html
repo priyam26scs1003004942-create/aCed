@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aCed - My Courses</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eef2ff;
+      --bg-body: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --drawer-width: 330px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+    body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+    .app-container { width: 100%; height: 100vh; max-width: 100%; background-color: var(--bg-body); display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+
+    @media (min-width: 768px) {
+      body { padding: 24px 0; }
+      .app-container { max-width: 900px; height: 85vh; border-radius: 24px; overflow: hidden; }
+    }
+
+    /* Header */
+    header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #ffffff; border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .icon-btn { background: none; border: none; font-size: 1.25rem; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: flex-start; width: 40px; transition: color 0.2s ease; }
+    .icon-btn:hover { color: var(--primary); }
+    .brand-title { font-family: 'Pacifico', cursive; font-size: 1.8rem; letter-spacing: 1px; display: flex; align-items: center; padding-bottom: 4px; }
+    .college-logo-link { display: flex; align-items: center; justify-content: flex-end; text-decoration: none; }
+    .college-logo-img { height: 36px; width: auto; max-width: 110px; object-fit: contain; transition: transform 0.2s ease; }
+    
+    /* Main Content */
+    main { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Page Header */
+    .page-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .page-title { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
+    .add-course-btn { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .add-course-btn:hover { background: var(--primary); color: #ffffff; }
+
+    /* Search Bar */
+    .search-container { background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .search-container i { color: var(--text-muted); font-size: 1.1rem; }
+    .search-container input { border: none; background: transparent; outline: none; font-size: 0.9rem; width: 100%; color: var(--text-main); }
+
+    /* Course Cards */
+    .courses-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 20px; }
+    
+    .course-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; transition: all 0.2s ease; z-index: 1; }
+    .course-card.menu-open { z-index: 60; }
+    .course-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+    
+    /* Left accent line */
+    .course-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--primary); border-radius: 16px 0 0 16px; }
+    
+    /* Card Header */
+    .course-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .course-title-group h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-main); line-height: 1.3; }
+    .course-code { font-size: 0.75rem; font-weight: 600; color: var(--primary); background: var(--primary-light); padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 6px; }
+
+    /* 3 Dots Menu Button & Dropdown Styles */
+    .options-wrapper { position: relative; }
+    .course-options-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 4px 10px; border-radius: 8px; transition: 0.2s; }
+    .course-options-btn:hover { background: var(--bg-body); color: var(--text-main); }
+    
+    .dropdown-menu { position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); width: 205px; display: flex; flex-direction: column; padding: 6px 0; opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 100; transform: translateY(5px); }
+    .dropdown-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
+    
+    .dropdown-item { padding: 10px 16px; font-size: 0.83rem; font-weight: 500; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; text-decoration: none; cursor: pointer; transition: 0.15s; background: none; border: none; width: 100%; text-align: left; }
+    .dropdown-item-left { display: flex; align-items: center; gap: 10px; }
+    .dropdown-item:hover { background: var(--bg-body); color: var(--primary); }
+    .dropdown-item i.main-icon { font-size: 0.95rem; width: 16px; text-align: center; color: var(--text-muted); transition: 0.15s; }
+    .dropdown-item:hover i.main-icon { color: var(--primary); }
+
+    /* More Options Submenu (Delete Course) */
+    .more-options-sub { display: none; background: #fff5f5; border-top: 1px dashed #fecaca; padding: 4px 0; }
+    .more-options-sub.show { display: block; }
+    .dropdown-item.delete-btn { color: var(--danger); font-weight: 600; }
+    .dropdown-item.delete-btn i.main-icon { color: var(--danger); }
+    .dropdown-item.delete-btn:hover { background: var(--danger-light); color: #b91c1c; }
+
+    /* Tags Row */
+    .course-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag { font-size: 0.75rem; background: #f1f5f9; color: var(--text-muted); padding: 4px 10px; border-radius: 8px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+    .tag.activity-tag { background: #ecfdf5; color: #047857; }
+    
+    /* Stats & Progress */
+    .course-stats { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; border-top: 1px dashed var(--border-color); padding-top: 12px; }
+    .stat-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+    .stat-item i { color: var(--text-main); }
+    
+    .progress-wrapper { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600; color: var(--text-main); }
+    .progress-bar-bg { width: 80px; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--success); border-radius: 4px; transition: width 0.3s ease; }
+
+    /* Custom Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.25s ease; padding: 16px; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-box { background: #fff; width: 100%; max-width: 460px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); transform: translateY(20px); transition: 0.25s ease; display: flex; flex-direction: column; max-height: 88vh; overflow: hidden; }
+    .modal-overlay.active .modal-box { transform: translateY(0); }
+    
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #ffffff; }
+    .modal-header h3 { font-size: 1.05rem; color: var(--text-main); font-weight: 600; }
+    .close-modal-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+    .close-modal-btn:hover { color: var(--danger); }
+    
+    .modal-body { padding: 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .input-group { display: flex; flex-direction: column; gap: 5px; }
+    .input-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-main); }
+    .input-group input, .input-group select, .input-group textarea { padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; outline: none; color: var(--text-main); background: #fff; }
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); }
+    
+    /* Mini List inside Assignment & Material Modals */
+    .saved-items-box { background: var(--bg-body); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); }
+    .saved-item-row { background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    .saved-item-row strong { color: var(--text-main); display: block; }
+    .saved-item-row span { color: var(--text-muted); font-size: 0.72rem; }
+    .badge-mini { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
+
+    .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; }
+    .cancel-btn { padding: 9px 16px; background: #e2e8f0; color: var(--text-main); border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
+    .cancel-btn:hover { background: #cbd5e1; }
+    .save-btn { padding: 9px 18px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2); transition: 0.2s; }
+    .save-btn:hover { background: #172554; }
+
+    /* Toast Notification */
+    .toast-msg { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(30px); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 30px; font-size: 0.82rem; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.15); opacity: 0; visibility: hidden; transition: 0.3s ease; z-index: 2000; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .toast-msg.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .toast-msg i { color: var(--success); }
+
+    /* Bottom Nav */
+    .bottom-nav { flex-shrink: 0; width: 100%; height: 75px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.04); z-index: 20; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--text-muted); font-size: 0.72rem; gap: 4px; transition: color 0.2s ease; flex: 1; height: 100%; }
+    .nav-item i { font-size: 1.15rem; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+    .nav-item:hover { color: var(--primary); }
+
+    /* Drawer Styles */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease; z-index: 998; }
+    .drawer-overlay.active { opacity: 1; visibility: visible; }
+    .sliding-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: var(--drawer-width); max-width: 85vw; background: #ffffff; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); transform: translateX(-100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); z-index: 999; display: flex; flex-direction: column; }
+    .sliding-drawer.active { transform: translateX(0); }
+    .drawer-top-profile { padding: 24px 20px 18px 20px; background: #f8fafc; border-bottom: 1px solid var(--border-color); position: relative; }
+    .drawer-close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+    .drawer-close-btn:hover { background: #e2e8f0; color: var(--text-main); }
+    .drawer-user-info { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+    .drawer-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+    .drawer-user-text h4 { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+    .drawer-user-text span { display: inline-block; margin-top: 2px; font-size: 0.72rem; background: #dbeafe; color: var(--primary); padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+    .drawer-content { flex: 1; padding: 18px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+    .drawer-card { background: #ffffff; border: 1.5px solid var(--border-color); border-radius: 12px; padding: 14px; transition: all 0.2s ease; }
+    .drawer-card-header { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 600; color: var(--text-main); text-decoration: none; }
+    .drawer-card-header i { color: var(--primary); font-size: 1.05rem; }
+    .drawer-card-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+    .drawer-bottom-footer { padding: 14px 18px; border-top: 1px solid var(--border-color); background: #f8fafc; display: flex; justify-content: flex-end; }
+    .logout-action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s ease; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Stylish Header -->
+    <header>
+      <button class="icon-btn" id="openDrawerBtn" aria-label="Open Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      
+      <div class="brand-title">
+        <span id="textA" style="color: var(--primary); cursor: pointer;" title="Change 'a' Color" onclick="document.getElementById('colorA').click()">a</span>
+        <span id="textCed" style="color: var(--danger); cursor: pointer;" title="Change 'Ced' Color" onclick="document.getElementById('colorCed').click()">Ced</span>
+        
+        <input type="color" id="colorA" style="display: none;" value="#1e3a8a" onchange="document.getElementById('textA').style.color = this.value;">
+        <input type="color" id="colorCed" style="display: none;" value="#ef4444" onchange="document.getElementById('textCed').style.color = this.value;">
+      </div>
+
+      <a href="https://iilm.edu" target="_blank" rel="noopener noreferrer" class="college-logo-link">
+        <img src="iilm webp.jpeg" alt="IILM University" class="college-logo-img" />
+      </a>
+    </header>
+
+    <main>
+      <!-- Title & Action Button -->
+      <div class="page-header-row">
+        <h2 class="page-title">Active Courses</h2>
+        <button class="add-course-btn" onclick="openAddCourseModal()">
+          <i class="fa-solid fa-plus"></i> New
+        </button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="courseSearchInput" placeholder="Search courses, codes or batch..." onkeyup="filterCourses()">
+      </div>
+
+      <!-- Course List -->
+      <div class="courses-list" id="coursesList">
+        
+        <!-- Course 1 -->
+        <div class="course-card" data-assignments='[{"title":"Linked List Implementation","due":"28 Oct 2026","marks":"20"}]' data-materials='[{"title":"Unit 1 - Trees & Graphs.pdf","type":"PDF Notes"}]'>
+          <div class="course-top">
+            <div class="course-title-group">
+              <h3 class="c-name">Data Structures & Algorithms</h3>
+              <span class="course-code c-code">CS-304</span>
+            </div>
+            
+            <div class="options-wrapper">
+              <button class="course-options-btn" onclick="toggleDropdown(event, this)">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <div class="dropdown-menu">
+                <button class="dropdown-item" onclick="openEditModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-pen-to-square main-icon"></i> Edit Course</span>
+                </button>
+                <button class="dropdown-item" onclick="openAssignmentModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-clipboard-list main-icon"></i> Assignments</span>
+                </button>
+                <button class="dropdown-item" onclick="openMaterialModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-file-arrow-up main-icon"></i> Upload Material</span>
+                </button>
+                <button class="dropdown-item" onclick="toggleMoreOptions(event, this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-Sliders main-icon fa-ellipsis"></i> More Options</span>
+                  <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-muted);"></i>
+                </button>
+                <div class="more-options-sub">
+                  <button class="dropdown-item delete-btn" onclick="deleteCourseCard(this)">
+                    <span class="dropdown-item-left"><i class="fa-solid fa-trash-can main-icon"></i> Delete Course</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="course-tags">
+            <span class="tag"><i class="fa-solid fa-graduation-cap"></i> <span class="c-branch">B.Tech CS</span></span>
+            <span class="tag"><i class="fa-regular fa-calendar"></i> <span class="c-sem">Sem 3</span></span>
+            <span class="tag"><i class="fa-solid fa-users-rectangle"></i> <span class="c-sec">Sec A</span></span>
+          </div>
+          <div class="course-stats">
+            <div class="stat-item"><i class="fa-solid fa-user-group"></i> <span class="c-students">64</span> Students</div>
+            <div class="progress-wrapper">
+              <span class="c-prog-text">65%</span>
+              <div class="progress-bar-bg"><div class="progress-bar-fill c-prog-bar" style="width: 65%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course 2 -->
+        <div class="course-card" data-assignments='[{"title":"Wave Function Numericals","due":"30 Oct 2026","marks":"15"}]' data-materials='[{"title":"Schrodinger Equation Lecture.pptx","type":"PPT Slides"}]'>
+          <div class="course-top">
+            <div class="course-title-group">
+              <h3 class="c-name">Quantum Physics</h3>
+              <span class="course-code c-code">PHY-102</span>
+            </div>
+            
+            <div class="options-wrapper">
+              <button class="course-options-btn" onclick="toggleDropdown(event, this)">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <div class="dropdown-menu">
+                <button class="dropdown-item" onclick="openEditModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-pen-to-square main-icon"></i> Edit Course</span>
+                </button>
+                <button class="dropdown-item" onclick="openAssignmentModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-clipboard-list main-icon"></i> Assignments</span>
+                </button>
+                <button class="dropdown-item" onclick="openMaterialModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-file-arrow-up main-icon"></i> Upload Material</span>
+                </button>
+                <button class="dropdown-item" onclick="toggleMoreOptions(event, this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-ellipsis main-icon"></i> More Options</span>
+                  <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-muted);"></i>
+                </button>
+                <div class="more-options-sub">
+                  <button class="dropdown-item delete-btn" onclick="deleteCourseCard(this)">
+                    <span class="dropdown-item-left"><i class="fa-solid fa-trash-can main-icon"></i> Delete Course</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="course-tags">
+            <span class="tag"><i class="fa-solid fa-graduation-cap"></i> <span class="c-branch">B.Tech CS</span></span>
+            <span class="tag"><i class="fa-regular fa-calendar"></i> <span class="c-sem">Sem 1</span></span>
+            <span class="tag"><i class="fa-solid fa-users-rectangle"></i> <span class="c-sec">Sec B</span></span>
+          </div>
+          <div class="course-stats">
+            <div class="stat-item"><i class="fa-solid fa-user-group"></i> <span class="c-students">48</span> Students</div>
+            <div class="progress-wrapper">
+              <span class="c-prog-text">40%</span>
+              <div class="progress-bar-bg"><div class="progress-bar-fill c-prog-bar" style="width: 40%; background: var(--warning);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course 3 -->
+        <div class="course-card" data-assignments='[]' data-materials='[]'>
+          <div class="course-top">
+            <div class="course-title-group">
+              <h3 class="c-name">Database Management Systems</h3>
+              <span class="course-code c-code">CS-401</span>
+            </div>
+            
+            <div class="options-wrapper">
+              <button class="course-options-btn" onclick="toggleDropdown(event, this)">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <div class="dropdown-menu">
+                <button class="dropdown-item" onclick="openEditModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-pen-to-square main-icon"></i> Edit Course</span>
+                </button>
+                <button class="dropdown-item" onclick="openAssignmentModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-clipboard-list main-icon"></i> Assignments</span>
+                </button>
+                <button class="dropdown-item" onclick="openMaterialModal(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-file-arrow-up main-icon"></i> Upload Material</span>
+                </button>
+                <button class="dropdown-item" onclick="toggleMoreOptions(event, this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-ellipsis main-icon"></i> More Options</span>
+                  <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-muted);"></i>
+                </button>
+                <div class="more-options-sub">
+                  <button class="dropdown-item delete-btn" onclick="deleteCourseCard(this)">
+                    <span class="dropdown-item-left"><i class="fa-solid fa-trash-can main-icon"></i> Delete Course</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="course-tags">
+            <span class="tag"><i class="fa-solid fa-graduation-cap"></i> <span class="c-branch">B.Tech CS</span></span>
+            <span class="tag"><i class="fa-regular fa-calendar"></i> <span class="c-sem">Sem 4</span></span>
+            <span class="tag"><i class="fa-solid fa-users-rectangle"></i> <span class="c-sec">Sec A</span></span>
+          </div>
+          <div class="course-stats">
+            <div class="stat-item"><i class="fa-solid fa-user-group"></i> <span class="c-students">60</span> Students</div>
+            <div class="progress-wrapper">
+              <span class="c-prog-text">90%</span>
+              <div class="progress-bar-bg"><div class="progress-bar-fill c-prog-bar" style="width: 90%; background: var(--primary);"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <a href="doubts.html" class="nav-item"><i class="fa-regular fa-comments"></i><span>Doubts</span></a>
+      <a href="course.html" class="nav-item active"><i class="fa-solid fa-book-open"></i><span>Courses</span></a>
+      <a href="alert.html" class="nav-item"><i class="fa-regular fa-bell"></i><span>Alerts</span></a>
+      <a href="profile.html" class="nav-item"><i class="fa-regular fa-user"></i><span>Profile</span></a>
+    </nav>
+
+  </div>
+
+  <!-- ==========================================
+       1. ADD NEW COURSE & BATCH MODAL
+       ========================================== -->
+  <div class="modal-overlay" id="addCourseModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Add New Course & Batch</h3>
+        <button class="close-modal-btn" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Course Name</label>
+          <input type="text" id="newCourseName" placeholder="e.g., Operating Systems">
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Course Code</label>
+            <input type="text" id="newCourseCode" placeholder="e.g., CS-309">
+          </div>
+          <div class="input-group">
+            <label>Program / Branch</label>
+            <select id="newCourseBranch">
+              <option value="B.Tech CS">B.Tech CS</option>
+              <option value="B.Tech AI">B.Tech AI</option>
+              <option value="BCA">BCA</option>
+              <option value="B.Sc">B.Sc</option>
+              <option value="BBA">BBA</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Semester / Batch</label>
+            <input type="text" id="newCourseSem" placeholder="e.g., Sem 3 (2026)">
+          </div>
+          <div class="input-group">
+            <label>Batch Section</label>
+            <input type="text" id="newCourseSec" placeholder="e.g., Sec C">
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Total Students</label>
+            <input type="number" id="newCourseStudents" placeholder="e.g., 55" value="50">
+          </div>
+          <div class="input-group">
+            <label>Initial Syllabus Progress (%)</label>
+            <input type="number" id="newCourseProg" min="0" max="100" value="10">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" onclick="closeAllModals()">Cancel</button>
+        <button class="save-btn" onclick="saveNewCourse()">Add Course</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       2. EDIT COURSE MODAL
+       ========================================== -->
+  <div class="modal-overlay" id="editCourseModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Edit Course Details</h3>
+        <button class="close-modal-btn" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Course Name</label>
+          <input type="text" id="editCourseName">
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Course Code</label>
+            <input type="text" id="editCourseCode">
+          </div>
+          <div class="input-group">
+            <label>Program / Branch</label>
+            <input type="text" id="editCourseBranch">
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Semester / Batch</label>
+            <input type="text" id="editCourseSem">
+          </div>
+          <div class="input-group">
+            <label>Batch Section</label>
+            <input type="text" id="editCourseSec">
+          </div>
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Total Students</label>
+            <input type="number" id="editCourseStudents">
+          </div>
+          <div class="input-group">
+            <label>Syllabus Completion (%)</label>
+            <input type="number" id="editCourseProg" min="0" max="100">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" onclick="closeAllModals()">Cancel</button>
+        <button class="save-btn" onclick="updateCourseDetails()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       3. ASSIGNMENTS MODAL
+       ========================================== -->
+  <div class="modal-overlay" id="assignmentModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="assignModalTitle">Course Assignments</h3>
+        <button class="close-modal-btn" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Active Assignments</label>
+          <div class="saved-items-box" id="assignmentsListContainer"></div>
+        </div>
+        <hr style="border: none; border-top: 1px dashed var(--border-color);">
+        <div class="input-group">
+          <label>Post New Assignment</label>
+          <input type="text" id="assignTitle" placeholder="Assignment Title (e.g., Lab File Submission)">
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Due Date</label>
+            <input type="date" id="assignDue">
+          </div>
+          <div class="input-group">
+            <label>Max Marks</label>
+            <input type="number" id="assignMarks" placeholder="e.g., 20" value="20">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" onclick="closeAllModals()">Close</button>
+        <button class="save-btn" onclick="saveNewAssignment()">Assign to Batch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       4. UPLOAD MATERIAL MODAL
+       ========================================== -->
+  <div class="modal-overlay" id="materialModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="materialModalTitle">Upload Study Material</h3>
+        <button class="close-modal-btn" onclick="closeAllModals()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Uploaded Materials</label>
+          <div class="saved-items-box" id="materialsListContainer"></div>
+        </div>
+        <hr style="border: none; border-top: 1px dashed var(--border-color);">
+        <div class="input-group">
+          <label>Material Title</label>
+          <input type="text" id="matTitle" placeholder="e.g., Module 2 Complete Notes">
+        </div>
+        <div class="grid-2col">
+          <div class="input-group">
+            <label>Material Type</label>
+            <select id="matType">
+              <option value="PDF Notes">PDF Notes</option>
+              <option value="PPT Slides">PPT Slides</option>
+              <option value="Question Bank">Question Bank</option>
+              <option value="Lab Manual">Lab Manual</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Select File</label>
+            <input type="file" id="matFile" style="padding: 6px; font-size: 0.75rem;">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-btn" onclick="closeAllModals()">Close</button>
+        <button class="save-btn" onclick="saveNewMaterial()">Upload Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toastMsg">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastText">Action completed!</span>
+  </div>
+
+  <!-- Left Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="sliding-drawer" id="sideDrawer">
+    <div class="drawer-top-profile">
+      <button class="drawer-close-btn" id="closeDrawerBtn"><i class="fa-solid fa-xmark"></i></button>
+      <div class="drawer-user-info">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Dr. Alex Martin" class="drawer-avatar" />
+        <div class="drawer-user-text">
+          <h4>Dr. Alex Martin</h4>
+          <span>FAC-ID: FAC-9042</span>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-content">
+      <div class="drawer-card">
+        <div class="drawer-card-header"><i class="fa-solid fa-mobile-screen-button"></i><span>Active Devices</span></div>
+        <p class="drawer-card-desc">Devices currently logged into this account.</p>
+      </div>
+      <div class="drawer-card">
+        <div class="drawer-card-header"><i class="fa-solid fa-circle-question"></i><span>Help & Support</span></div>
+        <p class="drawer-card-desc">support@aced.edu</p>
+      </div>
+    </div>
+    <div class="drawer-bottom-footer">
+      <a href="login.html" class="logout-action-btn"><i class="fa-solid fa-right-from-bracket"></i> LOG OUT</a>
+    </div>
+  </aside>
+
+  <script>
+    let activeCard = null;
+
+    // 1. Drawer Logic
+    const openDrawerBtn = document.getElementById('openDrawerBtn');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const sideDrawer = document.getElementById('sideDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+
+    function setDrawerState(isOpen) {
+      sideDrawer.classList.toggle('active', isOpen);
+      drawerOverlay.classList.toggle('active', isOpen);
+    }
+    openDrawerBtn.addEventListener('click', () => setDrawerState(true));
+    closeDrawerBtn.addEventListener('click', () => setDrawerState(false));
+    drawerOverlay.addEventListener('click', (e) => {
+      if (e.target === drawerOverlay) setDrawerState(false);
+    });
+
+    // 2. Toast Notification Helper
+    function showToast(message) {
+      const toast = document.getElementById('toastMsg');
+      document.getElementById('toastText').innerText = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    // 3. 3-Dots Dropdown & More Options Logic
+    function closeAllDropdowns() {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('active'));
+      document.querySelectorAll('.more-options-sub').forEach(sub => sub.classList.remove('show'));
+      document.querySelectorAll('.course-card').forEach(card => card.classList.remove('menu-open'));
+    }
+
+    function toggleDropdown(e, btn) {
+      e.stopPropagation();
+      const card = btn.closest('.course-card');
+      const currentMenu = btn.nextElementSibling;
+      const isAlreadyOpen = currentMenu.classList.contains('active');
+
+      closeAllDropdowns();
+
+      if (!isAlreadyOpen) {
+        currentMenu.classList.add('active');
+        card.classList.add('menu-open');
+      }
+    }
+
+    function toggleMoreOptions(e, btn) {
+      e.stopPropagation();
+      const subMenu = btn.nextElementSibling;
+      subMenu.classList.toggle('show');
+    }
+
+    document.addEventListener('click', () => closeAllDropdowns());
+
+    // 4. Modal Helpers
+    function closeAllModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeAllModals();
+      });
+    });
+
+    // 5. ADD NEW COURSE & BATCH
+    function openAddCourseModal() {
+      document.getElementById('newCourseName').value = '';
+      document.getElementById('newCourseCode').value = '';
+      document.getElementById('newCourseSem').value = 'Sem 3';
+      document.getElementById('newCourseSec').value = 'Sec A';
+      document.getElementById('newCourseStudents').value = '60';
+      document.getElementById('newCourseProg').value = '15';
+      document.getElementById('addCourseModal').classList.add('active');
+    }
+
+    function getProgressBarColor(prog) {
+      if (prog < 45) return 'var(--warning)';
+      if (prog >= 85) return 'var(--primary)';
+      return 'var(--success)';
+    }
+
+    function saveNewCourse() {
+      const name = document.getElementById('newCourseName').value.trim() || 'New Course';
+      const code = document.getElementById('newCourseCode').value.trim() || 'CS-101';
+      const branch = document.getElementById('newCourseBranch').value;
+      const sem = document.getElementById('newCourseSem').value.trim() || 'Sem 1';
+      const sec = document.getElementById('newCourseSec').value.trim() || 'Sec A';
+      const students = document.getElementById('newCourseStudents').value || '50';
+      const prog = Math.min(100, Math.max(0, parseInt(document.getElementById('newCourseProg').value) || 0));
+      const barColor = getProgressBarColor(prog);
+
+      const newCard = document.createElement('div');
+      newCard.className = 'course-card';
+      newCard.dataset.assignments = '[]';
+      newCard.dataset.materials = '[]';
+
+      newCard.innerHTML = `
+        <div class="course-top">
+          <div class="course-title-group">
+            <h3 class="c-name">${name}</h3>
+            <span class="course-code c-code">${code}</span>
+          </div>
+          
+          <div class="options-wrapper">
+            <button class="course-options-btn" onclick="toggleDropdown(event, this)">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" onclick="openEditModal(this)">
+                <span class="dropdown-item-left"><i class="fa-solid fa-pen-to-square main-icon"></i> Edit Course</span>
+              </button>
+              <button class="dropdown-item" onclick="openAssignmentModal(this)">
+                <span class="dropdown-item-left"><i class="fa-solid fa-clipboard-list main-icon"></i> Assignments</span>
+              </button>
+              <button class="dropdown-item" onclick="openMaterialModal(this)">
+                <span class="dropdown-item-left"><i class="fa-solid fa-file-arrow-up main-icon"></i> Upload Material</span>
+              </button>
+              <button class="dropdown-item" onclick="toggleMoreOptions(event, this)">
+                <span class="dropdown-item-left"><i class="fa-solid fa-ellipsis main-icon"></i> More Options</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; color: var(--text-muted);"></i>
+              </button>
+              <div class="more-options-sub">
+                <button class="dropdown-item delete-btn" onclick="deleteCourseCard(this)">
+                  <span class="dropdown-item-left"><i class="fa-solid fa-trash-can main-icon"></i> Delete Course</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="course-tags">
+          <span class="tag"><i class="fa-solid fa-graduation-cap"></i> <span class="c-branch">${branch}</span></span>
+          <span class="tag"><i class="fa-regular fa-calendar"></i> <span class="c-sem">${sem}</span></span>
+          <span class="tag"><i class="fa-solid fa-users-rectangle"></i> <span class="c-sec">${sec}</span></span>
+        </div>
+        <div class="course-stats">
+          <div class="stat-item"><i class="fa-solid fa-user-group"></i> <span class="c-students">${students}</span> Students</div>
+          <div class="progress-wrapper">
+            <span class="c-prog-text">${prog}%</span>
+            <div class="progress-bar-bg"><div class="progress-bar-fill c-prog-bar" style="width: ${prog}%; background: ${barColor};"></div></div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('coursesList').prepend(newCard);
+      closeAllModals();
+      showToast(`"${name}" (${sec}) added!`);
+    }
+
+    // 6. EDIT COURSE LOGIC
+    function openEditModal(btn) {
+      closeAllDropdowns();
+      activeCard = btn.closest('.course-card');
+
+      document.getElementById('editCourseName').value = activeCard.querySelector('.c-name').innerText;
+      document.getElementById('editCourseCode').value = activeCard.querySelector('.c-code').innerText;
+      document.getElementById('editCourseBranch').value = activeCard.querySelector('.c-branch').innerText;
+      document.getElementById('editCourseSem').value = activeCard.querySelector('.c-sem').innerText;
+      document.getElementById('editCourseSec').value = activeCard.querySelector('.c-sec').innerText;
+      document.getElementById('editCourseStudents').value = activeCard.querySelector('.c-students').innerText;
+      document.getElementById('editCourseProg').value = parseInt(activeCard.querySelector('.c-prog-text').innerText) || 0;
+
+      document.getElementById('editCourseModal').classList.add('active');
+    }
+
+    function updateCourseDetails() {
+      if (!activeCard) return;
+      const prog = Math.min(100, Math.max(0, parseInt(document.getElementById('editCourseProg').value) || 0));
+
+      activeCard.querySelector('.c-name').innerText = document.getElementById('editCourseName').value.trim() || 'Untitled Course';
+      activeCard.querySelector('.c-code').innerText = document.getElementById('editCourseCode').value.trim() || 'CS-000';
+      activeCard.querySelector('.c-branch').innerText = document.getElementById('editCourseBranch').value.trim() || 'B.Tech';
+      activeCard.querySelector('.c-sem').innerText = document.getElementById('editCourseSem').value.trim() || 'Sem 1';
+      activeCard.querySelector('.c-sec').innerText = document.getElementById('editCourseSec').value.trim() || 'Sec A';
+      activeCard.querySelector('.c-students').innerText = document.getElementById('editCourseStudents').value || '0';
+      
+      activeCard.querySelector('.c-prog-text').innerText = prog + '%';
+      const bar = activeCard.querySelector('.c-prog-bar');
+      bar.style.width = prog + '%';
+      bar.style.background = getProgressBarColor(prog);
+
+      closeAllModals();
+      showToast('Course details updated!');
+    }
+
+    // 7. ASSIGNMENTS LOGIC
+    function openAssignmentModal(btn) {
+      closeAllDropdowns();
+      activeCard = btn.closest('.course-card');
+      const courseName = activeCard.querySelector('.c-name').innerText;
+      document.getElementById('assignModalTitle').innerText = `Assignments • ${courseName}`;
+      document.getElementById('assignTitle').value = '';
+      document.getElementById('assignDue').value = '';
+      renderAssignmentsList();
+      document.getElementById('assignmentModal').classList.add('active');
+    }
+
+    function renderAssignmentsList() {
+      const container = document.getElementById('assignmentsListContainer');
+      const list = JSON.parse(activeCard.dataset.assignments || '[]');
+      if (list.length === 0) {
+        container.innerHTML = `<p style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">No assignments posted yet.</p>`;
+        return;
+      }
+      container.innerHTML = list.map(a => `
+        <div class="saved-item-row">
+          <div>
+            <strong>${a.title}</strong>
+            <span>Due: ${a.due}</span>
+          </div>
+          <span class="badge-mini">${a.marks} Marks</span>
+        </div>
+      `).join('');
+    }
+
+    function saveNewAssignment() {
+      const title = document.getElementById('assignTitle').value.trim();
+      const due = document.getElementById('assignDue').value || 'Upcoming';
+      const marks = document.getElementById('assignMarks').value || '20';
+
+      if (!title) {
+        showToast('Please enter an assignment title!');
+        return;
+      }
+
+      const list = JSON.parse(activeCard.dataset.assignments || '[]');
+      list.unshift({ title, due, marks });
+      activeCard.dataset.assignments = JSON.stringify(list);
+
+      renderAssignmentsList();
+      document.getElementById('assignTitle').value = '';
+      showToast('Assignment posted to batch!');
+    }
+
+    // 8. UPLOAD MATERIAL LOGIC
+    function openMaterialModal(btn) {
+      closeAllDropdowns();
+      activeCard = btn.closest('.course-card');
+      const courseName = activeCard.querySelector('.c-name').innerText;
+      document.getElementById('materialModalTitle').innerText = `Study Material • ${courseName}`;
+      document.getElementById('matTitle').value = '';
+      document.getElementById('matFile').value = '';
+      renderMaterialsList();
+      document.getElementById('materialModal').classList.add('active');
+    }
+
+    function renderMaterialsList() {
+      const container = document.getElementById('materialsListContainer');
+      const list = JSON.parse(activeCard.dataset.materials || '[]');
+      if (list.length === 0) {
+        container.innerHTML = `<p style="font-size: 0.78rem; color: var(--text-muted); text-align: center;">No study materials uploaded yet.</p>`;
+        return;
+      }
+      container.innerHTML = list.map(m => `
+        <div class="saved-item-row">
+          <div>
+            <strong><i class="fa-regular fa-file-lines" style="margin-right: 5px; color: var(--primary);"></i>${m.title}</strong>
+          </div>
+          <span class="badge-mini">${m.type}</span>
+        </div>
+      `).join('');
+    }
+
+    function saveNewMaterial() {
+      const titleInput = document.getElementById('matTitle').value.trim();
+      const fileInput = document.getElementById('matFile');
+      const type = document.getElementById('matType').value;
+
+      const finalTitle = titleInput || (fileInput.files[0] ? fileInput.files[0].name : '');
+      if (!finalTitle) {
+        showToast('Please enter a title or choose a file!');
+        return;
+      }
+
+      const list = JSON.parse(activeCard.dataset.materials || '[]');
+      list.unshift({ title: finalTitle, type });
+      activeCard.dataset.materials = JSON.stringify(list);
+
+      renderMaterialsList();
+      document.getElementById('matTitle').value = '';
+      document.getElementById('matFile').value = '';
+      showToast('Study material uploaded!');
+    }
+
+    // 9. DELETE COURSE LOGIC
+    function deleteCourseCard(btn) {
+      closeAllDropdowns();
+      const card = btn.closest('.course-card');
+      const courseName = card.querySelector('.c-name').innerText;
+      card.style.transform = 'scale(0.95)';
+      card.style.opacity = '0';
+      setTimeout(() => {
+        card.remove();
+        showToast(`"${courseName}" deleted!`);
+      }, 200);
+    }
+
+    // 10. LIVE SEARCH BAR LOGIC
+    function filterCourses() {
+      const query = document.getElementById('courseSearchInput').value.toLowerCase();
+      document.querySelectorAll('.course-card').forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(query) ? 'flex' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
